@@ -1,0 +1,219 @@
+<div class="sales-log-container">
+  <div class="header-section">
+    <h2>SALES LOG</h2>
+    <div class="header-actions">
+      <button class="new-task-button" (click)="createTask()">
+        <i class="fas fa-plus"></i> New Task
+      </button>
+      <input type="text" placeholder="Search" class="search-input"> </div>
+  </div>
+
+  <div class="table-info-bar">
+    <p>Use the <i class="fas fa-filter icon-placeholder"></i> icon next to the table titles to apply filters</p>
+  </div>
+
+  <div class="task-table-wrapper">
+    <table class="task-table">
+      <thead>
+        <tr>
+          <th>Date <i class="fas fa-filter filter-icon" (click)="openFilterModal('date')"></i></th>
+          <th>Entity Name <i class="fas fa-filter filter-icon" (click)="openFilterModal('entityName')"></i></th>
+          <th>Task Type <i class="fas fa-filter filter-icon" (click)="openFilterModal('taskType')"></i></th>
+          <th>Time <i class="fas fa-clock icon-placeholder"></i></th>
+          <th>Contact Person <i class="fas fa-filter filter-icon" (click)="openFilterModal('contactPerson')"></i></th><th>Notes</th>
+          <th>Status <i class="fas fa-filter filter-icon" (click)="openFilterModal('status')"></i></th>
+          <th>Options</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let task of tasksToDisplay">
+          <td>{{ task.dateCreated | date:'dd/MM/yyyy' }}</td>
+          <td><a href="#" class="entity-name-link">{{ task.entityName }}</a></td>
+          <td>
+            <ng-container [ngSwitch]="task.taskType">
+              <i *ngSwitchCase="'Call'" class="fas fa-phone icon-placeholder"></i>
+              <i *ngSwitchCase="'Meeting'" class="fas fa-handshake icon-placeholder"></i>
+              <i *ngSwitchCase="'Video Call'" class="fas fa-video icon-placeholder"></i>
+              <i *ngSwitchDefault class="fas fa-question-circle icon-placeholder"></i> </ng-container>
+            {{ task.taskType }}
+          </td>
+          <td>{{ task.time }}</td>
+          <td>
+            <ng-container *ngIf="task.contactPerson; else addContactButton">
+              {{ task.contactPerson }}
+            </ng-container>
+            <ng-template #addContactButton>
+              <button class="add-note-button">
+                <i class="fas fa-plus"></i> Add Contact
+              </button>
+            </ng-template>
+          </td>
+          <td>
+            <ng-container *ngIf="task.note; else addNoteButton">
+              {{ task.note }}
+            </ng-container>
+            <ng-template #addNoteButton>
+              <button class="add-note-button">
+                <i class="fas fa-plus"></i> Add Note
+              </button>
+            </ng-template>
+          </td>
+          <td>
+            <div class="status-tooltip-container">
+              <span class="status-badge status-{{ task.status.toLowerCase() }}">{{ task.status }}</span>
+              <div class="status-tooltip-text">
+                Status: {{ task.status | titlecase }}<br>
+                <ng-container *ngIf="task.lastStatusChangeDate">
+                  Changed on: {{ task.lastStatusChangeDate | date:'dd/MM/yyyy h:mm a' }}
+                </ng-container>
+                <ng-container *ngIf="!task.lastStatusChangeDate">
+                  Created on: {{ task.dateCreated | date:'dd/MM/yyyy h:mm a' }}
+                </ng-container>
+              </div>
+            </div>
+          </td>
+          <td>
+            <div class="options-dropdown">
+              <button class="options-button" (click)="openTaskOptions(task)">Options <i class="fas fa-chevron-down"></i></button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div *ngIf="tasksToDisplay.length === 0" class="no-tasks-message">
+      No tasks found. Click "New Task" to add one!
+    </div>
+  </div>
+</div>
+
+<div *ngIf="editingTask || showNewTaskModal" class="modal-overlay">
+  <div class="modal-content">
+    <h3>{{ editingTask ? 'EDIT TASK' : 'NEW TASK' }}</h3>
+
+    <div class="status-toggle-container">
+      <button
+        class="status-toggle-button"
+        [class.active]="(editingTask ? editTaskForm : newTaskForm).get('status')?.value === 'open'"
+        (click)="changeFormStatus('open')"
+      >
+        Open
+      </button>
+      <button
+        class="status-toggle-button"
+        [class.active]="(editingTask ? editTaskForm : newTaskForm).get('status')?.value === 'closed'"
+        (click)="changeFormStatus('closed')"
+      >
+        Closed
+      </button>
+    </div>
+
+    <form [formGroup]="editingTask ? editTaskForm : newTaskForm">
+      <div class="form-group">
+        <label for="entityName">Entity name</label>
+        <input id="entityName" type="text" formControlName="entityName" placeholder="Enter entity name">
+      </div>
+
+      <div class="form-group">
+        <label for="date">Date</label>
+        <input id="date" type="date" formControlName="date">
+      </div>
+
+      <div class="form-group">
+        <label for="time">Time</label>
+        <input id="time" type="time" formControlName="time">
+      </div>
+
+      <div class="form-group">
+        <label for="taskType">Task Type</label>
+        <select id="taskType" formControlName="taskType">
+          <option value="" disabled>Select Task Type</option>
+          <option *ngFor="let type of taskTypes" [value]="type">{{ type }}</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="phoneNumber">Phone number</label>
+        <input id="phoneNumber" type="text" formControlName="phoneNumber" placeholder="Enter phone number">
+      </div>
+
+      <div class="form-group">
+        <label for="contactPerson">Contact person</label>
+        <input id="contactPerson" type="text" formControlName="contactPerson" placeholder="Enter contact person">
+      </div>
+
+      <div class="form-group">
+        <label for="note">Note (optional)</label>
+        <textarea id="note" formControlName="note" placeholder="Add any notes here"></textarea>
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="cancel-button" (click)="cancelEdit()">CANCEL</button>
+        <button
+          type="submit"
+          class="save-button"
+          (click)="editingTask ? saveEditedTask() : createTask()"
+          [disabled]="(editingTask ? editTaskForm : newTaskForm).invalid"
+        >
+          SAVE
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div *ngIf="showTaskOptionsModal" class="modal-overlay" (click)="closeTaskOptions()">
+  <div class="modal-content options-modal-content" (click)="$event.stopPropagation()">
+    <h3>TASK OPTIONS</h3>
+    <div class="options-list">
+      <button class="option-button" (click)="handleCall()">
+        <i class="fas fa-phone"></i> Call
+      </button>
+      <button class="option-button" (click)="editTask(selectedTaskForOptions!)">
+        <i class="fas fa-edit"></i> Edit Task
+      </button>
+      <button class="option-button delete-option" (click)="deleteTask(selectedTaskForOptions!.id)">
+        <i class="fas fa-trash-alt"></i> Delete Task
+      </button>
+      <button class="option-button cancel-option" (click)="closeTaskOptions()">
+        Cancel
+      </button>
+    </div>
+  </div>
+</div>
+
+<div *ngIf="showFilterModal" class="modal-overlay" (click)="closeFilterModal()">
+  <div class="modal-content filter-modal-content" (click)="$event.stopPropagation()">
+    <h3>FILTER BY {{ currentFilterColumn | uppercase }}</h3>
+    <div class="form-group">
+      <input type="text" class="filter-search-input" [(ngModel)]="filterSearchTerm" placeholder="Search">
+    </div>
+    <div class="filter-options">
+      <div *ngFor="let option of filterOptionsForModal" class="filter-checkbox">
+        <input
+          type="checkbox"
+          [id]="generateFilterId(option)"
+          [value]="option"
+          [checked]="isFilterItemSelected(option)"
+          (change)="onFilterCheckboxChange(option, $event, currentFilterColumn!)"
+        >
+        <label [for]="generateFilterId(option)">
+          <ng-container *ngIf="currentFilterColumn === 'date'">
+            {{ option | date:'dd/MM/yyyy' }}
+          </ng-container>
+          <ng-container *ngIf="currentFilterColumn === 'status'">
+            {{ option | titlecase }}
+          </ng-container>
+          <ng-container *ngIf="currentFilterColumn === 'entityName' || currentFilterColumn === 'taskType' || currentFilterColumn === 'contactPerson'">
+            {{ option }}
+          </ng-container>
+        </label>
+      </div>
+      <div *ngIf="filterOptionsForModal.length === 0" class="no-filter-results">No matching options.</div>
+    </div>
+    <div class="modal-actions filter-modal-actions">
+      <button type="button" class="cancel-button" (click)="clearFilters()">CLEAR</button>
+      <button type="button" class="save-button" (click)="applyFilters()">APPLY</button>
+    </div>
+  </div>
+</div>

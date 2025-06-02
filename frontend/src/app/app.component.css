@@ -1,0 +1,550 @@
+/* finstack-frontend-final/src/app/app.component.css */
+
+/* General Body Styling (though typically applied in styles.css or index.html) */
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  background-color: #f4f7f6;
+  color: #333;
+}
+
+/* Main Container for Sales Log */
+.sales-log-container {
+  max-width: 1200px;
+  margin: 20px auto;
+  padding: 20px;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+}
+
+/* Header Section */
+.header-section {
+  display: flex;
+  justify-content: space-between; /* Pushes SALAS LOG to left, header-actions to right */
+  align-items: center;
+  margin-bottom: 25px; /* Consistent margin */
+  padding-bottom: 15px;
+  border-bottom: 1px solid #eee;
+}
+
+.header-section h2 {
+  font-size: 26px; /* Slightly larger heading */
+  color: #333;
+  margin: 0;
+}
+
+.header-actions {
+  display: flex;
+  gap: 15px; /* Space between button and search input */
+  align-items: center;
+}
+
+.new-task-button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  padding: 10px 20px;
+  font-size: 15px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1); /* Consistent shadow */
+  transition: background-color 0.2s ease-in-out;
+}
+
+.new-task-button:hover {
+  background-color: #0056b3;
+}
+
+.search-input {
+  padding: 10px 15px; /* Consistent padding */
+  border: 1px solid #ddd; /* Consistent border */
+  border-radius: 5px;
+  font-size: 15px;
+  width: 200px; /* Consistent width */
+}
+
+/* Table Info Bar */
+.table-info-bar {
+  background-color: #e9f7ef; /* Light green background for info bar */
+  color: #28a745; /* Darker green text */
+  padding: 10px 15px;
+  border-radius: 5px;
+  margin-bottom: 20px; /* Consistent margin */
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+}
+
+.table-info-bar .icon-placeholder {
+  margin-right: 8px;
+  font-size: 16px;
+  color: #28a745; /* Match info bar text color */
+}
+
+/* Task Table Wrapper */
+.task-table-wrapper {
+  overflow-x: auto; /* Allows horizontal scrolling for narrow screens */
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.03);
+}
+
+.task-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 800px; /* Ensures table doesn't get too narrow on smaller screens */
+}
+
+.task-table thead th {
+  background-color: #f8f9fa; /* Header background */
+  padding: 12px 15px;
+  text-align: left;
+  font-size: 14px;
+  color: #666;
+  text-transform: uppercase;
+  border-bottom: 1px solid #e0e0e0;
+  white-space: nowrap; /* Prevent wrapping in headers */
+}
+
+.task-table thead th .filter-icon {
+  margin-left: 8px;
+  cursor: pointer;
+  color: #999;
+}
+
+.task-table tbody td {
+  padding: 12px 15px;
+  border-bottom: 1px solid #eee;
+  font-size: 14px;
+  vertical-align: middle;
+}
+
+.task-table tbody tr:last-child td {
+  border-bottom: none; /* No border for the last row */
+}
+
+.task-table tbody tr:hover {
+  background-color: #fcfcfc; /* Subtle hover effect */
+}
+
+/* Specific column styling */
+.task-table td:nth-child(1), /* Date */
+.task-table td:nth-child(4) { /* Time */
+  white-space: nowrap; /* Prevent date/time wrapping */
+}
+
+.entity-name-link {
+  color: #007bff;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.entity-name-link:hover {
+  text-decoration: underline;
+}
+
+/* General icon placeholder within table cells (e.g. for task type) */
+.task-table .icon-placeholder {
+  color: #007bff; /* Consistent blue icon color */
+  margin-right: 5px;
+}
+
+/* Status Badge */
+.status-badge {
+  display: inline-block;
+  padding: 5px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: bold;
+  text-transform: capitalize;
+  min-width: 70px;
+  text-align: center;
+}
+
+.status-badge.status-open {
+  background-color: #e8f5e9; /* Light green */
+  color: #4CAF50; /* Darker green */
+}
+
+.status-badge.status-closed {
+  background-color: #ffe0b2; /* Light orange */
+  color: #FF9800; /* Darker orange */
+}
+
+/* Add Note/Contact Button */
+.add-note-button {
+  background: none;
+  border: 1px dashed #ccc; /* Dashed border for "add" buttons */
+  color: #555;
+  border-radius: 5px;
+  padding: 5px 10px;
+  font-size: 13px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  transition: background-color 0.2s ease-in-out;
+}
+
+.add-note-button:hover {
+  background-color: #e0e0e0;
+  border-color: #bbb;
+}
+
+/* Options Button */
+.options-button {
+  background-color: #6c757d; /* Gray button */
+  color: white;
+  border: none;
+  border-radius: 5px;
+  padding: 8px 15px;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  transition: background-color 0.2s ease-in-out;
+}
+
+.options-button:hover {
+  background-color: #5a6268;
+}
+
+.options-button i {
+  font-size: 12px;
+}
+
+/* No Tasks Message */
+.no-tasks-message {
+  text-align: center;
+  padding: 50px;
+  font-size: 18px;
+  color: #888;
+  background-color: #fdfdfd;
+  border-top: 1px solid #eee;
+  border-bottom-left-radius: 8px;
+  border-bottom-right-radius: 8px;
+}
+
+/* --- Modal Base Styling --- */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background-color: white;
+  padding: 30px;
+  border-radius: 10px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  width: 90%;
+  max-width: 500px; /* Default max-width for new/edit modal */
+  box-sizing: border-box;
+  position: relative; /* For z-index within modal */
+  z-index: 1001; /* Ensure content is above overlay */
+}
+
+/* Shared Modal Header Styling */
+.modal-content h3 {
+  text-align: center;
+  margin-top: 0;
+  margin-bottom: 25px; /* Consistent margin */
+  color: #333;
+  font-size: 20px;
+  text-transform: uppercase;
+}
+
+/* --- Form Group Styling (for New/Edit and Filter Modals) --- */
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: bold;
+  color: #555;
+  font-size: 13px; /* Slightly smaller for labels */
+}
+
+.form-group input[type="text"],
+.form-group input[type="date"],
+.form-group input[type="time"],
+.form-group select,
+.form-group textarea {
+  width: calc(100% - 22px); /* Account for padding and border */
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 14px;
+  box-sizing: border-box; /* Include padding/border in width calculation */
+}
+
+.form-group textarea {
+  resize: vertical;
+  min-height: 80px; /* Taller textarea for more space */
+}
+
+/* --- Status Toggle Container (for New/Edit Modal) --- */
+.status-toggle-container {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 25px;
+  background-color: #f0f0f0; /* Slight background for the container */
+  border-radius: 5px;
+  padding: 3px;
+  gap: 5px;
+}
+
+.status-toggle-button {
+  flex: 1;
+  background-color: transparent; /* Makes the unselected button appear white */
+  border: none;
+  padding: 8px 15px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 14px;
+  color: #666;
+  transition: all 0.2s ease-in-out;
+}
+
+.status-toggle-button.active {
+  background-color: #007bff; /* Primary blue for active state */
+  color: white;
+  box-shadow: 0 2px 5px rgba(0, 123, 255, 0.3);
+}
+
+.status-toggle-button.active:hover {
+  background-color: #0056b3; /* Slightly darker blue on hover for the active button */
+}
+
+.status-toggle-button:hover:not(.active) {
+  background-color: #e2e6ea; /* Subtle hover for inactive buttons */
+  color: #333;
+}
+
+/* --- Modal Actions (buttons at the bottom of New/Edit and Filter Modals) --- */
+.modal-actions {
+  display: flex;
+  justify-content: flex-end; /* Align buttons to the right */
+  gap: 10px;
+  margin-top: 25px;
+}
+
+/* For filter modal, actions are spaced out */
+.filter-modal-actions {
+  justify-content: space-between; /* Space out CLEAR and APPLY buttons */
+}
+
+.modal-actions button {
+  padding: 10px 25px; /* Larger padding for modal action buttons */
+  border: none;
+  border-radius: 5px;
+  font-size: 15px; /* Larger font size */
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.2s ease-in-out;
+}
+
+.modal-actions .cancel-button {
+  background-color: #6c757d; /* Gray for cancel */
+  color: white;
+}
+
+.modal-actions .cancel-button:hover {
+  background-color: #5a6268;
+}
+
+.modal-actions .save-button {
+  background-color: #007bff; /* Primary blue for save/apply */
+  color: white;
+}
+
+.modal-actions .save-button:hover {
+  background-color: #0056b3;
+}
+
+.modal-actions .save-button:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+/* --- Options Modal Specific Styling --- */
+.options-modal-content {
+  max-width: 350px; /* Smaller max-width for options modal */
+  padding: 20px;
+  text-align: center;
+}
+
+.options-modal-content h3 {
+  font-size: 18px; /* Slightly smaller heading for options modal */
+  margin-bottom: 20px;
+}
+
+.options-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px; /* Space between option buttons */
+}
+
+.option-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 12px 15px;
+  font-size: 16px;
+  font-weight: bold;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  background-color: white;
+  cursor: pointer;
+  transition: background-color 0.2s, border-color 0.2s;
+  color: #333;
+}
+
+.option-button i {
+  margin-right: 10px;
+  font-size: 18px;
+}
+
+.option-button:hover {
+  background-color: #f5f5f5;
+  border-color: #bbb;
+}
+
+.option-button.delete-option {
+  color: #dc3545; /* Red for delete */
+  border-color: #dc3545;
+}
+
+.option-button.delete-option:hover {
+  background-color: #dc3545;
+  color: white;
+}
+
+.option-button.cancel-option {
+  background-color: #6c757d;
+  color: white;
+  border-color: #6c757d;
+  margin-top: 15px; /* More space above cancel */
+}
+
+.option-button.cancel-option:hover {
+  background-color: #5a6268;
+}
+
+/* --- Filter Modal Specific Styling --- */
+.filter-modal-content {
+  max-width: 400px; /* Adjust width as needed for filter modal */
+}
+
+.filter-modal-content h3 {
+  font-size: 18px; /* Consistent heading size for filter modal */
+}
+
+.filter-search-input {
+  width: calc(100% - 22px);
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 14px;
+  margin-bottom: 15px;
+  box-sizing: border-box;
+}
+
+.filter-options {
+  max-height: 200px; /* Make filter options scrollable if too many */
+  overflow-y: auto;
+  border: 1px solid #eee;
+  border-radius: 5px;
+  padding: 10px;
+  background-color: #fcfcfc;
+  margin-bottom: 20px;
+}
+
+.filter-checkbox {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+  font-size: 15px;
+}
+
+.filter-checkbox:last-child {
+  margin-bottom: 0;
+}
+
+.filter-checkbox input[type="checkbox"] {
+  margin-right: 10px;
+  min-width: 18px; /* Ensure checkbox is visible */
+  min-height: 18px;
+  cursor: pointer;
+}
+
+.filter-checkbox label {
+  cursor: pointer;
+  color: #333;
+}
+
+.no-filter-results {
+  text-align: center;
+  color: #888;
+  padding: 10px;
+}
+
+/* --- Status Tooltip Styles --- */
+.status-tooltip-container {
+  position: relative; /* Needed for absolute positioning of tooltip */
+  display: inline-block; /* Ensure it wraps the status badge */
+  cursor: help; /* Indicates interactivity */
+}
+
+.status-tooltip-text {
+  visibility: hidden; /* Hidden by default */
+  width: 180px; /* Width of the tooltip */
+  background-color: #555; /* Dark background */
+  color: #fff; /* White text */
+  text-align: left; /* Text alignment */
+  border-radius: 6px; /* Rounded corners */
+  padding: 8px 10px; /* Padding */
+  position: absolute;
+  z-index: 1; /* On top of other elements */
+  bottom: 125%; /* Position above the status badge */
+  left: 50%;
+  margin-left: -90px; /* Center the tooltip */
+  opacity: 0;
+  transition: opacity 0.3s;
+  font-size: 12px;
+  line-height: 1.5;
+  white-space: normal; /* Allow text to wrap */
+}
+
+.status-tooltip-text::after { /* Arrow at the bottom */
+  content: "";
+  position: absolute;
+  top: 100%; /* At the bottom of the tooltip */
+  left: 50%;
+  margin-left: -5px; /* Center the arrow */
+  border-width: 5px;
+  border-style: solid;
+  border-color: #555 transparent transparent transparent;
+}
+
+/* Show the tooltip on hover */
+.status-tooltip-container:hover .status-tooltip-text {
+  visibility: visible;
+  opacity: 1;
+} 
