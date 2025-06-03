@@ -5,6 +5,7 @@ from flask_cors import CORS
 from datetime import datetime
 from uuid import uuid4
 import os
+from flask_migrate import Migrate
 
 # 1. REMOVE STATIC_FOLDER AND static_folder ARGUMENT FROM Flask() constructor
 #    Because Netlify handles the frontend, Flask handles only the API.
@@ -20,60 +21,63 @@ app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:/
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
+migrate = Migrate(app, db)
 
 # --- Task Model (NO CHANGES NEEDED HERE - it's good) ---
 class Task(db.Model):
     id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid4()))
     date_created = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    # --- ADD THIS NEW COLUMN HERE ---
+    task_date = db.Column(db.String(50), nullable=False) # For the user-entered date (e.g., "02/04/2024")
+    # --- END NEW COLUMN ---
     entity_name = db.Column(db.String(100), nullable=False)
     task_type = db.Column(db.String(100), nullable=False)
     time = db.Column(db.String(50))
     contact_person = db.Column(db.String(100))
     phone_number = db.Column(db.String(50))
     note = db.Column(db.Text)
-    status = db.Column(db.String(20), default='open', nullable=False) # 'open' or 'closed'
+    status = db.Column(db.String(20), default='open', nullable=False)
     last_status_change_date = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
 
     def to_dict(self):
+        # Ensure you have IST defined if you want timezone conversion
+        # from pytz import timezone
+        # IST = timezone('Asia/Kolkata')
+
+        ist_last_status_change_date = self.last_status_change_date.astimezone(IST) if self.last_status_change_date else None
+        ist_date_created = self.date_created.astimezone(IST) if self.date_created else None
+
         return {
-            "id": self.id,
-            "dateCreated": self.date_created.isoformat(),
-            "entityName": self.entity_name,
-            "taskType": self.task_type,
-            "time": self.time,
-            "contactPerson": self.contact_person,
-            "phoneNumber": self.phone_number,
-            "note": self.note,
-            "status": self.status,
-            "lastStatusChangeDate": self.last_status_change_date.isoformat()
-        }
-
-# Create database tables if they don't exist
-with app.app_context():
-    db.create_all()
-
-# --- Flask API Routes (NO CHANGES NEEDED HERE - these are correct) ---
-
-@app.route('/api/tasks', methods=['GET'])
-def get_tasks():
-    tasks = Task.query.all()
-    return jsonify([task.to_dict() for task in tasks])
-
-@app.route('/api/tasks', methods=['POST'])
+            'id': self.id,
+            'dateCreated': ist_date_created.strftime('%Y-%m-%d %I:%M %p') if ist_date_created else None,
+            'entityName': self.entity_name,
+            'taskType': self.task_type,
+            'time': self.time,
+            'contactPerson': self.contact_person,
+            'phoneNumber': self.phone_number,
+            'note': self.note,
+            'status': self.status,
+            'lastStatusChangeDate': ist_last_status_change_date.strftime('%Y-%m-%d %I:%M %p') if ist_last_status_change_date else None,
+            # --- ADD THIS TO to_dict ---
+            'taskDate': self.task_date # This will send the user-entered date to the frontend
+            # --- END ADD ---
+        }@app.route('/api/tasks', methods=['POST'])
 def create_task():
     data = request.json
-    if not data or not all(key in data for key in ['entityName', 'taskType']):
-        return jsonify({"error": "Missing entityName or taskType"}), 400
+    # --- UPDATE THIS LINE: Make taskDate a required field for creation ---
+    if not data or not all(key in data for key in ['taskDate', 'entityName', 'taskType']):
+        return jsonify({"error": "Missing required data (taskDate, entityName, or taskType)"}), 400
 
     new_task = Task(
+        task_date=data['taskDate'], # <-- ADD THIS LINE: Save the user-entered date
         entity_name=data['entityName'],
         task_type=data['taskType'],
         time=data.get('time'),
         contact_person=data.get('contactPerson'),
         phone_number=data.get('phoneNumber'),
-        status=data.get('status', 'open'),
         note=data.get('note'),
-        last_status_change_date=datetime.utcnow()
+        status=data.get('status', 'open'),
+        # last_status_change_date and date_created are set by default in the model
     )
     db.session.add(new_task)
     db.session.commit()

@@ -1,17 +1,18 @@
-Flask==3.1.1
-Flask-CORS==6.0.0
-Flask-SQLAlchemy==3.1.1
-gunicorn==23.0.0
-psycopg2-binary==2.9.10
-SQLAlchemy==2.0.41
-# Flask & SQLAlchemy dependencies (usually pulled in automatically by pip)
+alembic==1.16.1
 blinker==1.9.0
 click==8.2.1
+Flask==3.1.1
+flask-cors==6.0.0
+Flask-Migrate==4.1.0
+Flask-SQLAlchemy==3.1.1
+gunicorn==23.0.0
 itsdangerous==2.2.0
 Jinja2==3.1.6
+Mako==1.3.10
 MarkupSafe==3.0.2
 packaging==25.0
+psycopg2-binary==2.9.10
+python-dotenv==1.0.1
+SQLAlchemy==2.0.41
 typing_extensions==4.13.2
 Werkzeug==3.1.3
-# Recommended for local development (if you use .env files)
-python-dotenv==1.0.1 # Or the latest version
