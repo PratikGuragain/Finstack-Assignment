@@ -39,7 +39,10 @@ else:
 # ... Task model definition ...
 class Task(db.Model):
     id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    dateCreated = db.Column(db.String(20), default=lambda: datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+    # --- CHANGE MADE HERE ---
+    # Explicitly map 'dateCreated' Python attribute to 'date_created' database column
+    dateCreated = db.Column("date_created", db.String(20), default=lambda: datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+    # --- END CHANGE ---
     taskDate = db.Column(db.String(20), nullable=False)
     entityName = db.Column(db.String(255), nullable=False)
     taskType = db.Column(db.String(255), nullable=False)
@@ -54,7 +57,7 @@ class Task(db.Model):
     def to_dict(self):
         return {
             'id': self.id,
-            'dateCreated': self.dateCreated,
+            'dateCreated': self.dateCreated, # This remains 'dateCreated' as it's the Python attribute
             'taskDate': self.taskDate,
             'entityName': self.entityName,
             'taskType': self.taskType,
