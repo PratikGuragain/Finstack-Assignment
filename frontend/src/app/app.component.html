@@ -1,10 +1,8 @@
 <div class="sales-log-container">
+
   <div class="header-section">
-    <h2>SALES LOG</h2>
-    <div class="header-actions">
-      <button class="new-task-button" (click)="createTask()">
-        <i class="fas fa-plus"></i> New Task
-      </button>
+    <h2>SALES LOG</h2> <div class="header-actions"> <button class="new-task-button" (click)="createTask()">
+        <i class="fas fa-plus"></i> New Task </button>
       <input type="text" placeholder="Search" class="search-input">
     </div>
   </div>
@@ -17,20 +15,16 @@
     <table class="task-table">
       <thead>
         <tr>
-          <th>Date <i class="fas fa-filter filter-icon" (click)="openFilterModal('taskDate')"></i></th>
+          <th>Date <i class="fas fa-filter filter-icon" (click)="openFilterModal('date')"></i></th>
           <th>Entity Name <i class="fas fa-filter filter-icon" (click)="openFilterModal('entityName')"></i></th>
           <th>Task Type <i class="fas fa-filter filter-icon" (click)="openFilterModal('taskType')"></i></th>
-          <th>Time <i class="fas fa-clock icon-placeholder"></i></th>
-          <th>Contact Person <i class="fas fa-filter filter-icon" (click)="openFilterModal('contactPerson')"></i></th>
-          <th>Notes</th>
-          <th>Status <i class="fas fa-filter filter-icon" (click)="openFilterModal('status')"></i></th>
-          <th>Options</th>
-        </tr>
+          <th>Time <i class="fas fa-clock icon-placeholder"></i></th> <th>Contact Person <i class="fas fa-filter filter-icon" (click)="openFilterModal('contactPerson')"></i></th>
+          <th>Notes</th> <th>Status <i class="fas fa-filter filter-icon" (click)="openFilterModal('status')"></i></th>
+          <th>Options</th> </tr>
       </thead>
       <tbody>
         <tr *ngFor="let task of tasksToDisplay">
-          <td>{{ task.taskDate }}</td>
-          <td><a href="#" class="entity-name-link">{{ task.entityName }}</a></td>
+          <td>{{ task.dateCreated | date:'dd/MM/yyyy' }}</td> <td><a href="#" class="entity-name-link">{{ task.entityName }}</a></td>
           <td>
             <ng-container [ngSwitch]="task.taskType">
               <i *ngSwitchCase="'Call'" class="fas fa-phone icon-placeholder"></i>
@@ -45,8 +39,7 @@
             <ng-container *ngIf="task.contactPerson; else addContactButton">
               {{ task.contactPerson }}
             </ng-container>
-            <ng-template #addContactButton>
-              <button class="add-note-button">
+            <ng-template #addContactButton> <button class="add-note-button">
                 <i class="fas fa-plus"></i> Add Contact
               </button>
             </ng-template>
@@ -65,8 +58,7 @@
             <div class="status-tooltip-container">
               <span class="status-badge status-{{ task.status.toLowerCase() }}">{{ task.status }}</span>
               <div class="status-tooltip-text">
-                Status: {{ task.status | titlecase }}<br>
-                <ng-container *ngIf="task.lastStatusChangeDate">
+                Status: {{ task.status | titlecase }}<br> <ng-container *ngIf="task.lastStatusChangeDate">
                   Changed on: {{ task.lastStatusChangeDate | date:'dd/MM/yyyy h:mm a' }}
                 </ng-container>
                 <ng-container *ngIf="!task.lastStatusChangeDate">
@@ -118,7 +110,9 @@
       </div>
 
       <div class="form-group">
-        <label for="taskDate">Date</label> <input id="taskDate" type="date" formControlName="taskDate"> </div>
+        <label for="date">Date</label>
+        <input id="date" type="date" formControlName="date">
+      </div>
 
       <div class="form-group">
         <label for="time">Time</label>
@@ -199,8 +193,8 @@
           (change)="onFilterCheckboxChange(option, $event, currentFilterColumn!)"
         >
         <label [for]="generateFilterId(option)">
-          <ng-container *ngIf="currentFilterColumn === 'taskDate'">
-            {{ option }}
+          <ng-container *ngIf="currentFilterColumn === 'date'">
+            {{ option | date:'dd/MM/yyyy' }}
           </ng-container>
           <ng-container *ngIf="currentFilterColumn === 'status'">
             {{ option | titlecase }}
