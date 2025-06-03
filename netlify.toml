@@ -1,7 +1,7 @@
 [build]
   base = "frontend/"
-  publish = "frontend/dist/frontend/browser/"
-  command = "npm install && ng build --configuration production" # Added npm install
+  publish = "dist/frontend/browser/" # <--- CHANGE THIS LINE!
+  command = "npm install && ng build --configuration production"
 
 [[redirects]]
   from = "/*"
