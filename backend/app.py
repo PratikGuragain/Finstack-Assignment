@@ -17,31 +17,17 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 
-# --- NEW CORS CONFIGURATION BLOCK ---
-# Get the origin explicitly. Fallback to a development default if not found
-allowed_origins = os.environ.get("CORE_ORIGIN")
-
-# If you have multiple origins, you can split them by comma:
-# allowed_origins = os.environ.get("CORE_ORIGIN").split(',') if os.environ.get("CORE_ORIGIN") else None
-
-# Configure CORS - The origin should be your Netlify frontend URL
-if allowed_origins:
-    app.logger.info(f"CORS configured with specific origin: {allowed_origins}")
-    CORS(app, resources={r"/api/*": {"origins": allowed_origins}})
-else:
-    # Fallback for development if CORE_ORIGIN is not set or is None.
-    # This is less secure as it allows all origins, use for debugging only.
-    app.logger.warning("CORE_ORIGIN environment variable not set or is None. Enabling CORS for all origins for debugging.")
-    CORS(app) # This will enable CORS for all origins, less secure, but will bypass the NoneType error
-
-# --- END NEW CORS CONFIGURATION BLOCK ---
+# --- REVERTED CORS CONFIGURATION BLOCK ---
+# This was your original, simpler CORS setup
+CORS(app)
+# --- END REVERTED CORS CONFIGURATION BLOCK ---
 
 # ... Task model definition ...
 class Task(db.Model):
     id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    # Reverted: No explicit column name mapping
+    # Original: No explicit column name mapping here
     dateCreated = db.Column(db.String(20), default=lambda: datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
-    # Reverted: No explicit column name mapping
+    # Original: No explicit column name mapping here
     taskDate = db.Column(db.String(20), nullable=False)
     entityName = db.Column(db.String(255), nullable=False)
     taskType = db.Column(db.String(255), nullable=False)
@@ -74,25 +60,23 @@ class Task(db.Model):
 @app.route('/api/tasks', methods=['GET', 'POST'])
 def handle_tasks():
     if request.method == 'POST':
-        # Add logging here
         app.logger.info("Received POST request to /api/tasks")
         data = request.json
-        app.logger.info(f"Received JSON data for new task: {data}") # Log the received JSON data
+        app.logger.info(f"Received JSON data for new task: {data}")
 
         if not data:
-            app.logger.error("Request must contain JSON data") # Log error
+            app.logger.error("Request must contain JSON data")
             return jsonify({"error": "Request must contain JSON data"}), 400
 
-        # Reverted: Expecting 'taskDate' from frontend
+        # Original: Expected 'taskDate' from frontend
         required_fields = ['taskDate', 'entityName', 'taskType']
         if not all(key in data for key in required_fields):
             missing = [key for key in required_fields if key not in data]
-            app.logger.error(f"Missing required fields: {', '.join(missing)}") # Log missing fields
+            app.logger.error(f"Missing required fields: {', '.join(missing)}")
             return jsonify({"error": f"Missing required fields: {', '.join(missing)}"}), 400
 
-        # Create new task instance
         new_task = Task(
-            # Reverted: Accessing 'taskDate' from payload
+            # Original: Accessed 'taskDate' from payload
             taskDate=data['taskDate'],
             entityName=data['entityName'],
             taskType=data['taskType'],
@@ -106,15 +90,15 @@ def handle_tasks():
         try:
             db.session.add(new_task)
             db.session.commit()
-            app.logger.info(f"Task created successfully: {new_task.id}") # Log success
+            app.logger.info(f"Task created successfully: {new_task.id}")
             return jsonify(new_task.to_dict()), 201
         except Exception as e:
             db.session.rollback()
-            app.logger.error(f"Error creating task: {e}") # Existing error logging
+            app.logger.error(f"Error creating task: {e}")
             return jsonify({"error": "Could not create task", "details": str(e)}), 500
 
     elif request.method == 'GET':
-        app.logger.info("Received GET request to /api/tasks") # Log GET request
+        app.logger.info("Received GET request to /api/tasks")
         tasks = Task.query.all()
         return jsonify([task.to_dict() for task in tasks]), 200
 
@@ -122,10 +106,10 @@ def handle_tasks():
 # Example: DELETE/PUT/GET single task by ID
 @app.route('/api/tasks/<string:task_id>', methods=['GET', 'PUT', 'DELETE'])
 def handle_single_task(task_id):
-    app.logger.info(f"Received request for task_id: {task_id}, method: {request.method}") # Log for single task
+    app.logger.info(f"Received request for task_id: {task_id}, method: {request.method}")
     task = Task.query.get(task_id)
     if not task:
-        app.logger.error(f"Task with ID {task_id} not found") # Log not found
+        app.logger.error(f"Task with ID {task_id} not found")
         return jsonify({"error": "Task not found"}), 404
 
     if request.method == 'GET':
@@ -133,19 +117,18 @@ def handle_single_task(task_id):
 
     elif request.method == 'PUT':
         data = request.json
-        app.logger.info(f"Received JSON data for updating task {task_id}: {data}") # Log update data
+        app.logger.info(f"Received JSON data for updating task {task_id}: {data}")
 
         if not data:
             return jsonify({"error": "Request must contain JSON data"}), 400
 
-        # Update fields if present in the request data
         task.entityName = data.get('entityName', task.entityName)
         task.taskType = data.get('taskType', task.taskType)
         task.time = data.get('time', task.time)
         task.contactPerson = data.get('contactPerson', task.contactPerson)
         task.phoneNumber = data.get('phoneNumber', task.phoneNumber)
         task.note = data.get('note', task.note)
-        # Reverted: Expecting 'taskDate' from payload
+        # Original: Expected 'taskDate' from payload
         task.taskDate = data.get('taskDate', task.taskDate)
 
         new_status = data.get('status')
@@ -155,22 +138,22 @@ def handle_single_task(task_id):
 
         try:
             db.session.commit()
-            app.logger.info(f"Task {task_id} updated successfully") # Log update success
+            app.logger.info(f"Task {task_id} updated successfully")
             return jsonify(task.to_dict()), 200
         except Exception as e:
             db.session.rollback()
-            app.logger.error(f"Error updating task {task_id}: {e}") # Existing error logging
+            app.logger.error(f"Error updating task {task_id}: {e}")
             return jsonify({"error": "Could not update task", "details": str(e)}), 500
 
     elif request.method == 'DELETE':
         try:
             db.session.delete(task)
             db.session.commit()
-            app.logger.info(f"Task {task_id} deleted successfully") # Log delete success
+            app.logger.info(f"Task {task_id} deleted successfully")
             return jsonify({"message": "Task deleted successfully"}), 200
         except Exception as e:
             db.session.rollback()
-            app.logger.error(f"Error deleting task {task_id}: {e}") # Existing error logging
+            app.logger.error(f"Error deleting task {task_id}: {e}")
             return jsonify({"error": "Could not delete task", "details": str(e)}), 500
 
 if __name__ == '__main__':
