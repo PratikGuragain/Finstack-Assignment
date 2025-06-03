@@ -1,43 +1,37 @@
 # backend/app.py
 
-# ... imports ...
+import os
+
 from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_cors import CORS
-import os
 import uuid
-from datetime import datetime # Make sure datetime is imported for logging and timestamping
+from datetime import datetime
 
-# ... app, db, migrate initialization ...
 app = Flask(__name__)
-# Configure your PostgreSQL database URL from Render environment
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 
-# --- REVERTED CORS CONFIGURATION BLOCK ---
-# This was your original, simpler CORS setup
 CORS(app)
-# --- END REVERTED CORS CONFIGURATION BLOCK ---
 
-# ... Task model definition ...
+# Task model definition
 class Task(db.Model):
     id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    # Original: No explicit column name mapping here
+    # dateCreated: Automatically set to current datetime
     dateCreated = db.Column(db.String(20), default=lambda: datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
-    # Original: No explicit column name mapping here
-    taskDate = db.Column(db.String(20), nullable=False)
+    # taskDate: Automatically set to current date (assuming YYYY-MM-DD format)
+    taskDate = db.Column(db.String(20), default=lambda: datetime.now().strftime("%Y-%m-%d"), nullable=False)
     entityName = db.Column(db.String(255), nullable=False)
     taskType = db.Column(db.String(255), nullable=False)
-    time = db.Column(db.String(50))
+    time = db.Column(db.String(50)) # No default, assuming it's optional or user-provided
     contactPerson = db.Column(db.String(255))
     phoneNumber = db.Column(db.String(20))
     note = db.Column(db.Text)
     status = db.Column(db.String(50), default='open')
     lastStatusChangeDate = db.Column(db.String(20))
-
 
     def to_dict(self):
         return {
@@ -54,9 +48,6 @@ class Task(db.Model):
             'lastStatusChangeDate': self.lastStatusChangeDate
         }
 
-# ... Routes for creating and getting tasks ...
-
-# GET all tasks or POST a new task
 @app.route('/api/tasks', methods=['GET', 'POST'])
 def handle_tasks():
     if request.method == 'POST':
@@ -68,16 +59,15 @@ def handle_tasks():
             app.logger.error("Request must contain JSON data")
             return jsonify({"error": "Request must contain JSON data"}), 400
 
-        # Original: Expected 'taskDate' from frontend
-        required_fields = ['taskDate', 'entityName', 'taskType']
+        # REQUIRED FIELDS: taskDate is now *not* in required_fields as it's auto-generated
+        required_fields = ['entityName', 'taskType']
         if not all(key in data for key in required_fields):
             missing = [key for key in required_fields if key not in data]
             app.logger.error(f"Missing required fields: {', '.join(missing)}")
             return jsonify({"error": f"Missing required fields: {', '.join(missing)}"}), 400
 
         new_task = Task(
-            # Original: Accessed 'taskDate' from payload
-            taskDate=data['taskDate'],
+            # taskDate is now automatically handled by its default in the model
             entityName=data['entityName'],
             taskType=data['taskType'],
             time=data.get('time'),
@@ -102,8 +92,6 @@ def handle_tasks():
         tasks = Task.query.all()
         return jsonify([task.to_dict() for task in tasks]), 200
 
-# Other routes like DELETE, PUT, GET by ID if you have them
-# Example: DELETE/PUT/GET single task by ID
 @app.route('/api/tasks/<string:task_id>', methods=['GET', 'PUT', 'DELETE'])
 def handle_single_task(task_id):
     app.logger.info(f"Received request for task_id: {task_id}, method: {request.method}")
@@ -128,8 +116,12 @@ def handle_single_task(task_id):
         task.contactPerson = data.get('contactPerson', task.contactPerson)
         task.phoneNumber = data.get('phoneNumber', task.phoneNumber)
         task.note = data.get('note', task.note)
-        # Original: Expected 'taskDate' from payload
+        # If taskDate should be updateable, it would come from frontend,
+        # but if it's strictly auto-generated, you might not want to update it here.
+        # For now, keeping it as it was before this specific change, meaning it would still be expected
+        # from the payload if provided for update. If you want it *never* updateable, remove this line.
         task.taskDate = data.get('taskDate', task.taskDate)
+
 
         new_status = data.get('status')
         if new_status and new_status != task.status:
