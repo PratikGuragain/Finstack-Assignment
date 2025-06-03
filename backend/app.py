@@ -1,152 +1,114 @@
-# backend/app.py
+# finstack-task-app/backend/app.py 
+from flask import Flask, request, jsonify 
+# Removed send_from_directory 
+from flask_sqlalchemy import SQLAlchemy 
+from flask_cors import CORS 
+from datetime import datetime 
+from uuid import uuid4 
+import os 
 
-import os
+app = Flask(__name__) # <<< USE THIS LINE INSTEAD 
 
-from flask import Flask, request, jsonify
-from flask_sqlalchemy import SQLAlchemy
-from flask_migrate import Migrate
-from flask_cors import CORS
-import uuid
-from datetime import datetime
+CORS_ORIGIN = os.environ.get('CORS_ORIGIN', 'http://localhost:4200') 
+CORS(app, resources={r"/api/*": {"origins": CORS_ORIGIN}}) # Specific CORS for /api routes 
 
-app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-db = SQLAlchemy(app)
-migrate = Migrate(app, db)
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///site.db') 
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False 
+db = SQLAlchemy(app) 
 
-CORS(app)
+# --- Task Model (NO CHANGES NEEDED HERE - it's good) --- 
+class Task(db.Model): 
+    id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid4())) 
+    date_created = db.Column(db.DateTime, default=datetime.utcnow, nullable=False) 
+    entity_name = db.Column(db.String(100), nullable=False) 
+    task_type = db.Column(db.String(100), nullable=False) 
+    time = db.Column(db.String(50)) 
+    contact_person = db.Column(db.String(100)) 
+    phone_number = db.Column(db.String(50)) 
+    note = db.Column(db.Text) 
+    status = db.Column(db.String(20), default='open', nullable=False) # 'open' or 'closed' 
+    last_status_change_date = db.Column(db.DateTime, default=datetime.utcnow, nullable=False) 
 
-# Task model definition
-class Task(db.Model):
-    id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    # dateCreated: Automatically set to current datetime
-    dateCreated = db.Column(db.String(20), default=lambda: datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
-    # taskDate: Automatically set to current date (assuming YYYY-MM-DD format)
-    taskDate = db.Column(db.String(20), default=lambda: datetime.now().strftime("%Y-%m-%d"), nullable=False)
-    entityName = db.Column(db.String(255), nullable=False)
-    taskType = db.Column(db.String(255), nullable=False)
-    time = db.Column(db.String(50)) # No default, assuming it's optional or user-provided
-    contactPerson = db.Column(db.String(255))
-    phoneNumber = db.Column(db.String(20))
-    note = db.Column(db.Text)
-    status = db.Column(db.String(50), default='open')
-    lastStatusChangeDate = db.Column(db.String(20))
+    def to_dict(self): 
+        return { 
+            "id": self.id, 
+            "dateCreated": self.date_created.isoformat(), 
+            "entityName": self.entity_name, 
+            "taskType": self.task_type, 
+            "time": self.time, 
+            "contactPerson": self.contact_person, 
+            "phoneNumber": self.phone_number, 
+            "note": self.note, 
+            "status": self.status, 
+            "lastStatusChangeDate": self.last_status_change_date.isoformat() 
+        } 
 
-    def to_dict(self):
-        return {
-            'id': self.id,
-            'dateCreated': self.dateCreated,
-            'taskDate': self.taskDate,
-            'entityName': self.entityName,
-            'taskType': self.taskType,
-            'time': self.time,
-            'contactPerson': self.contactPerson,
-            'phoneNumber': self.phoneNumber,
-            'note': self.note,
-            'status': self.status,
-            'lastStatusChangeDate': self.lastStatusChangeDate
-        }
+# Create database tables if they don't exist 
+with app.app_context(): 
+    db.create_all() 
 
-@app.route('/api/tasks', methods=['GET', 'POST'])
-def handle_tasks():
-    if request.method == 'POST':
-        app.logger.info("Received POST request to /api/tasks")
-        data = request.json
-        app.logger.info(f"Received JSON data for new task: {data}")
+# --- Flask API Routes (NO CHANGES NEEDED HERE - these are correct) --- 
+@app.route('/api/tasks', methods=['GET']) 
+def get_tasks(): 
+    tasks = Task.query.all() 
+    return jsonify([task.to_dict() for task in tasks]) 
 
-        if not data:
-            app.logger.error("Request must contain JSON data")
-            return jsonify({"error": "Request must contain JSON data"}), 400
+@app.route('/api/tasks', methods=['POST']) 
+def create_task(): 
+    data = request.json 
+    if not data or not all(key in data for key in ['entityName', 'taskType']): 
+        return jsonify({"error": "Missing entityName or taskType"}), 400 
+    
+    new_task = Task( 
+        entity_name=data['entityName'], 
+        task_type=data['taskType'], 
+        time=data.get('time'), 
+        contact_person=data.get('contactPerson'), 
+        phone_number=data.get('phoneNumber'), 
+        status=data.get('status', 'open'), 
+        note=data.get('note'), 
+        last_status_change_date=datetime.utcnow() 
+    ) 
+    db.session.add(new_task) 
+    db.session.commit() 
+    return jsonify(new_task.to_dict()), 201 
 
-        # REQUIRED FIELDS: taskDate is now *not* in required_fields as it's auto-generated
-        required_fields = ['entityName', 'taskType']
-        if not all(key in data for key in required_fields):
-            missing = [key for key in required_fields if key not in data]
-            app.logger.error(f"Missing required fields: {', '.join(missing)}")
-            return jsonify({"error": f"Missing required fields: {', '.join(missing)}"}), 400
+@app.route('/api/tasks/<string:task_id>', methods=['PUT']) 
+def update_task(task_id): 
+    data = request.json 
+    task_to_update = db.session.get(Task, task_id) 
+    if not task_to_update: 
+        return jsonify({"error": "Task not found"}), 404 
+    
+    old_status = task_to_update.status 
+    new_status = data.get('status', old_status) 
+    
+    task_to_update.entity_name = data.get('entityName', task_to_update.entity_name) 
+    task_to_update.task_type = data.get('taskType', task_to_update.task_type) 
+    task_to_update.time = data.get('time', task_to_update.time) 
+    task_to_update.contact_person = data.get('contactPerson', task_to_update.contact_person) 
+    task_to_update.phone_number = data.get('phoneNumber', task_to_update.phone_number) 
+    task_to_update.note = data.get('note', task_to_update.note) 
+    
+    if new_status != old_status: 
+        task_to_update.status = new_status 
+        task_to_update.last_status_change_date = datetime.utcnow() 
+    else: 
+        task_to_update.status = new_status # Keep existing status if not changed
+    
+    db.session.commit() 
+    return jsonify(task_to_update.to_dict()), 200 
 
-        new_task = Task(
-            # taskDate is now automatically handled by its default in the model
-            entityName=data['entityName'],
-            taskType=data['taskType'],
-            time=data.get('time'),
-            contactPerson=data.get('contactPerson'),
-            phoneNumber=data.get('phoneNumber'),
-            note=data.get('note'),
-            status=data.get('status', 'open')
-        )
+@app.route('/api/tasks/<string:task_id>', methods=['DELETE']) 
+def delete_task(task_id): 
+    task_to_delete = db.session.get(Task, task_id) 
+    if not task_to_delete: 
+        return jsonify({"error": "Task not found"}), 404 
+    
+    db.session.delete(task_to_delete) 
+    db.session.commit() 
+    return jsonify({"message": "Task deleted successfully"}), 200 
 
-        try:
-            db.session.add(new_task)
-            db.session.commit()
-            app.logger.info(f"Task created successfully: {new_task.id}")
-            return jsonify(new_task.to_dict()), 201
-        except Exception as e:
-            db.session.rollback()
-            app.logger.error(f"Error creating task: {e}")
-            return jsonify({"error": "Could not create task", "details": str(e)}), 500
-
-    elif request.method == 'GET':
-        app.logger.info("Received GET request to /api/tasks")
-        tasks = Task.query.all()
-        return jsonify([task.to_dict() for task in tasks]), 200
-
-@app.route('/api/tasks/<string:task_id>', methods=['GET', 'PUT', 'DELETE'])
-def handle_single_task(task_id):
-    app.logger.info(f"Received request for task_id: {task_id}, method: {request.method}")
-    task = Task.query.get(task_id)
-    if not task:
-        app.logger.error(f"Task with ID {task_id} not found")
-        return jsonify({"error": "Task not found"}), 404
-
-    if request.method == 'GET':
-        return jsonify(task.to_dict()), 200
-
-    elif request.method == 'PUT':
-        data = request.json
-        app.logger.info(f"Received JSON data for updating task {task_id}: {data}")
-
-        if not data:
-            return jsonify({"error": "Request must contain JSON data"}), 400
-
-        task.entityName = data.get('entityName', task.entityName)
-        task.taskType = data.get('taskType', task.taskType)
-        task.time = data.get('time', task.time)
-        task.contactPerson = data.get('contactPerson', task.contactPerson)
-        task.phoneNumber = data.get('phoneNumber', task.phoneNumber)
-        task.note = data.get('note', task.note)
-        # If taskDate should be updateable, it would come from frontend,
-        # but if it's strictly auto-generated, you might not want to update it here.
-        # For now, keeping it as it was before this specific change, meaning it would still be expected
-        # from the payload if provided for update. If you want it *never* updateable, remove this line.
-        task.taskDate = data.get('taskDate', task.taskDate)
-
-
-        new_status = data.get('status')
-        if new_status and new_status != task.status:
-            task.status = new_status
-            task.lastStatusChangeDate = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-
-        try:
-            db.session.commit()
-            app.logger.info(f"Task {task_id} updated successfully")
-            return jsonify(task.to_dict()), 200
-        except Exception as e:
-            db.session.rollback()
-            app.logger.error(f"Error updating task {task_id}: {e}")
-            return jsonify({"error": "Could not update task", "details": str(e)}), 500
-
-    elif request.method == 'DELETE':
-        try:
-            db.session.delete(task)
-            db.session.commit()
-            app.logger.info(f"Task {task_id} deleted successfully")
-            return jsonify({"message": "Task deleted successfully"}), 200
-        except Exception as e:
-            db.session.rollback()
-            app.logger.error(f"Error deleting task {task_id}: {e}")
-            return jsonify({"error": "Could not delete task", "details": str(e)}), 500
-
-if __name__ == '__main__':
-    app.run(debug=True)
+# --- Run the Flask App (for local development only) --- 
+if __name__ == '__main__': 
+    app.run(debug=True, host='0.0.0.0', port=os.environ.get('PORT', 5000))
