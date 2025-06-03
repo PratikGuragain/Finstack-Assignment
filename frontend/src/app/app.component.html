@@ -5,7 +5,8 @@
       <button class="new-task-button" (click)="createTask()">
         <i class="fas fa-plus"></i> New Task
       </button>
-      <input type="text" placeholder="Search" class="search-input"> </div>
+      <input type="text" placeholder="Search" class="search-input">
+    </div>
   </div>
 
   <div class="table-info-bar">
@@ -16,25 +17,27 @@
     <table class="task-table">
       <thead>
         <tr>
-          <th>Date <i class="fas fa-filter filter-icon" (click)="openFilterModal('date')"></i></th>
+          <th>Date <i class="fas fa-filter filter-icon" (click)="openFilterModal('taskDate')"></i></th>
           <th>Entity Name <i class="fas fa-filter filter-icon" (click)="openFilterModal('entityName')"></i></th>
           <th>Task Type <i class="fas fa-filter filter-icon" (click)="openFilterModal('taskType')"></i></th>
           <th>Time <i class="fas fa-clock icon-placeholder"></i></th>
-          <th>Contact Person <i class="fas fa-filter filter-icon" (click)="openFilterModal('contactPerson')"></i></th><th>Notes</th>
+          <th>Contact Person <i class="fas fa-filter filter-icon" (click)="openFilterModal('contactPerson')"></i></th>
+          <th>Notes</th>
           <th>Status <i class="fas fa-filter filter-icon" (click)="openFilterModal('status')"></i></th>
           <th>Options</th>
         </tr>
       </thead>
       <tbody>
         <tr *ngFor="let task of tasksToDisplay">
-          <td>{{ task.dateCreated | date:'dd/MM/yyyy' }}</td>
+          <td>{{ task.taskDate }}</td>
           <td><a href="#" class="entity-name-link">{{ task.entityName }}</a></td>
           <td>
             <ng-container [ngSwitch]="task.taskType">
               <i *ngSwitchCase="'Call'" class="fas fa-phone icon-placeholder"></i>
               <i *ngSwitchCase="'Meeting'" class="fas fa-handshake icon-placeholder"></i>
               <i *ngSwitchCase="'Video Call'" class="fas fa-video icon-placeholder"></i>
-              <i *ngSwitchDefault class="fas fa-question-circle icon-placeholder"></i> </ng-container>
+              <i *ngSwitchDefault class="fas fa-question-circle icon-placeholder"></i>
+            </ng-container>
             {{ task.taskType }}
           </td>
           <td>{{ task.time }}</td>
@@ -115,9 +118,7 @@
       </div>
 
       <div class="form-group">
-        <label for="date">Date</label>
-        <input id="date" type="date" formControlName="date">
-      </div>
+        <label for="taskDate">Date</label> <input id="taskDate" type="date" formControlName="taskDate"> </div>
 
       <div class="form-group">
         <label for="time">Time</label>
@@ -198,8 +199,8 @@
           (change)="onFilterCheckboxChange(option, $event, currentFilterColumn!)"
         >
         <label [for]="generateFilterId(option)">
-          <ng-container *ngIf="currentFilterColumn === 'date'">
-            {{ option | date:'dd/MM/yyyy' }}
+          <ng-container *ngIf="currentFilterColumn === 'taskDate'">
+            {{ option }}
           </ng-container>
           <ng-container *ngIf="currentFilterColumn === 'status'">
             {{ option | titlecase }}
