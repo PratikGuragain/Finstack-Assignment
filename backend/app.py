@@ -4,9 +4,10 @@
 from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
-from flask_cors import CORS # Make sure this is imported
+from flask_cors import CORS
 import os
 import uuid
+from datetime import datetime # Make sure datetime is imported for logging and timestamping
 
 # ... app, db, migrate initialization ...
 app = Flask(__name__)
@@ -16,15 +17,14 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 
-# Configure CORS - Make sure this is correctly set up
-# The origin should be your Netlify frontend URL
+# Configure CORS - The origin should be your Netlify frontend URL
 CORS(app, resources={r"/api/*": {"origins": os.environ.get("CORE_ORIGIN")}})
 
 # ... Task model definition ...
 class Task(db.Model):
     id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     dateCreated = db.Column(db.String(20), default=lambda: datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
-    taskDate = db.Column(db.String(20), nullable=False) # Ensure this is in your model
+    taskDate = db.Column(db.String(20), nullable=False)
     entityName = db.Column(db.String(255), nullable=False)
     taskType = db.Column(db.String(255), nullable=False)
     time = db.Column(db.String(50))
@@ -32,14 +32,14 @@ class Task(db.Model):
     phoneNumber = db.Column(db.String(20))
     note = db.Column(db.Text)
     status = db.Column(db.String(50), default='open')
-    lastStatusChangeDate = db.Column(db.String(20)) # NEWLY ADDED for tooltip
+    lastStatusChangeDate = db.Column(db.String(20))
 
 
     def to_dict(self):
         return {
             'id': self.id,
             'dateCreated': self.dateCreated,
-            'taskDate': self.taskDate, # Include this
+            'taskDate': self.taskDate,
             'entityName': self.entityName,
             'taskType': self.taskType,
             'time': self.time,
@@ -56,38 +56,46 @@ class Task(db.Model):
 @app.route('/api/tasks', methods=['GET', 'POST'])
 def handle_tasks():
     if request.method == 'POST':
+        # Add logging here
+        app.logger.info("Received POST request to /api/tasks")
         data = request.json
+        app.logger.info(f"Received JSON data for new task: {data}") # Log the received JSON data
+
         if not data:
+            app.logger.error("Request must contain JSON data") # Log error
             return jsonify({"error": "Request must contain JSON data"}), 400
 
         # Ensure all required fields are present
         required_fields = ['taskDate', 'entityName', 'taskType']
         if not all(key in data for key in required_fields):
             missing = [key for key in required_fields if key not in data]
+            app.logger.error(f"Missing required fields: {', '.join(missing)}") # Log missing fields
             return jsonify({"error": f"Missing required fields: {', '.join(missing)}"}), 400
 
         # Create new task instance
         new_task = Task(
-            taskDate=data['taskDate'], # Make sure this is correctly assigned
+            taskDate=data['taskDate'],
             entityName=data['entityName'],
             taskType=data['taskType'],
             time=data.get('time'),
             contactPerson=data.get('contactPerson'),
             phoneNumber=data.get('phoneNumber'),
             note=data.get('note'),
-            status=data.get('status', 'open') # Default to 'open' if not provided
+            status=data.get('status', 'open')
         )
 
         try:
             db.session.add(new_task)
             db.session.commit()
+            app.logger.info(f"Task created successfully: {new_task.id}") # Log success
             return jsonify(new_task.to_dict()), 201
         except Exception as e:
             db.session.rollback()
-            app.logger.error(f"Error creating task: {e}")
+            app.logger.error(f"Error creating task: {e}") # Existing error logging
             return jsonify({"error": "Could not create task", "details": str(e)}), 500
 
     elif request.method == 'GET':
+        app.logger.info("Received GET request to /api/tasks") # Log GET request
         tasks = Task.query.all()
         return jsonify([task.to_dict() for task in tasks]), 200
 
@@ -95,8 +103,10 @@ def handle_tasks():
 # Example: DELETE/PUT/GET single task by ID
 @app.route('/api/tasks/<string:task_id>', methods=['GET', 'PUT', 'DELETE'])
 def handle_single_task(task_id):
+    app.logger.info(f"Received request for task_id: {task_id}, method: {request.method}") # Log for single task
     task = Task.query.get(task_id)
     if not task:
+        app.logger.error(f"Task with ID {task_id} not found") # Log not found
         return jsonify({"error": "Task not found"}), 404
 
     if request.method == 'GET':
@@ -104,6 +114,8 @@ def handle_single_task(task_id):
 
     elif request.method == 'PUT':
         data = request.json
+        app.logger.info(f"Received JSON data for updating task {task_id}: {data}") # Log update data
+
         if not data:
             return jsonify({"error": "Request must contain JSON data"}), 400
 
@@ -114,10 +126,8 @@ def handle_single_task(task_id):
         task.contactPerson = data.get('contactPerson', task.contactPerson)
         task.phoneNumber = data.get('phoneNumber', task.phoneNumber)
         task.note = data.get('note', task.note)
-        # Update taskDate if provided, otherwise keep existing
         task.taskDate = data.get('taskDate', task.taskDate)
 
-        # Handle status change separately as it implies lastStatusChangeDate update
         new_status = data.get('status')
         if new_status and new_status != task.status:
             task.status = new_status
@@ -125,20 +135,22 @@ def handle_single_task(task_id):
 
         try:
             db.session.commit()
+            app.logger.info(f"Task {task_id} updated successfully") # Log update success
             return jsonify(task.to_dict()), 200
         except Exception as e:
             db.session.rollback()
-            app.logger.error(f"Error updating task: {e}")
+            app.logger.error(f"Error updating task {task_id}: {e}") # Existing error logging
             return jsonify({"error": "Could not update task", "details": str(e)}), 500
 
     elif request.method == 'DELETE':
         try:
             db.session.delete(task)
             db.session.commit()
+            app.logger.info(f"Task {task_id} deleted successfully") # Log delete success
             return jsonify({"message": "Task deleted successfully"}), 200
         except Exception as e:
             db.session.rollback()
-            app.logger.error(f"Error deleting task: {e}")
+            app.logger.error(f"Error deleting task {task_id}: {e}") # Existing error logging
             return jsonify({"error": "Could not delete task", "details": str(e)}), 500
 
 if __name__ == '__main__':
