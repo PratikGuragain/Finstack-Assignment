@@ -39,10 +39,9 @@ else:
 # ... Task model definition ...
 class Task(db.Model):
     id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    # --- CHANGE MADE HERE ---
-    # Explicitly map 'dateCreated' Python attribute to 'date_created' database column
-    dateCreated = db.Column("date_created", db.String(20), default=lambda: datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
-    # --- END CHANGE ---
+    # Reverted: No explicit column name mapping
+    dateCreated = db.Column(db.String(20), default=lambda: datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+    # Reverted: No explicit column name mapping
     taskDate = db.Column(db.String(20), nullable=False)
     entityName = db.Column(db.String(255), nullable=False)
     taskType = db.Column(db.String(255), nullable=False)
@@ -57,7 +56,7 @@ class Task(db.Model):
     def to_dict(self):
         return {
             'id': self.id,
-            'dateCreated': self.dateCreated, # This remains 'dateCreated' as it's the Python attribute
+            'dateCreated': self.dateCreated,
             'taskDate': self.taskDate,
             'entityName': self.entityName,
             'taskType': self.taskType,
@@ -84,7 +83,7 @@ def handle_tasks():
             app.logger.error("Request must contain JSON data") # Log error
             return jsonify({"error": "Request must contain JSON data"}), 400
 
-        # Ensure all required fields are present
+        # Reverted: Expecting 'taskDate' from frontend
         required_fields = ['taskDate', 'entityName', 'taskType']
         if not all(key in data for key in required_fields):
             missing = [key for key in required_fields if key not in data]
@@ -93,6 +92,7 @@ def handle_tasks():
 
         # Create new task instance
         new_task = Task(
+            # Reverted: Accessing 'taskDate' from payload
             taskDate=data['taskDate'],
             entityName=data['entityName'],
             taskType=data['taskType'],
@@ -145,6 +145,7 @@ def handle_single_task(task_id):
         task.contactPerson = data.get('contactPerson', task.contactPerson)
         task.phoneNumber = data.get('phoneNumber', task.phoneNumber)
         task.note = data.get('note', task.note)
+        # Reverted: Expecting 'taskDate' from payload
         task.taskDate = data.get('taskDate', task.taskDate)
 
         new_status = data.get('status')
