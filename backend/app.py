@@ -17,8 +17,24 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 
+# --- NEW CORS CONFIGURATION BLOCK ---
+# Get the origin explicitly. Fallback to a development default if not found
+allowed_origins = os.environ.get("CORE_ORIGIN")
+
+# If you have multiple origins, you can split them by comma:
+# allowed_origins = os.environ.get("CORE_ORIGIN").split(',') if os.environ.get("CORE_ORIGIN") else None
+
 # Configure CORS - The origin should be your Netlify frontend URL
-CORS(app, resources={r"/api/*": {"origins": os.environ.get("CORE_ORIGIN")}})
+if allowed_origins:
+    app.logger.info(f"CORS configured with specific origin: {allowed_origins}")
+    CORS(app, resources={r"/api/*": {"origins": allowed_origins}})
+else:
+    # Fallback for development if CORE_ORIGIN is not set or is None.
+    # This is less secure as it allows all origins, use for debugging only.
+    app.logger.warning("CORE_ORIGIN environment variable not set or is None. Enabling CORS for all origins for debugging.")
+    CORS(app) # This will enable CORS for all origins, less secure, but will bypass the NoneType error
+
+# --- END NEW CORS CONFIGURATION BLOCK ---
 
 # ... Task model definition ...
 class Task(db.Model):
