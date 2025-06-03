@@ -6,7 +6,7 @@ import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } 
 import { RouterModule } from '@angular/router';
 
 import { TaskService } from './task.service';
-import { Task } from './task.model';
+import { Task } from './task.model'; // Assuming Task model matches backend's to_dict output
 
 @Component({
   standalone: true,
@@ -30,47 +30,47 @@ export class AppComponent implements OnInit {
   showTaskOptionsModal: boolean = false;
   selectedTaskForOptions: Task | null = null;
 
-  // --- Filter Modal Properties ---
   showFilterModal: boolean = false;
   currentFilterColumn: string | null = null;
   filterSearchTerm: string = '';
 
-  // Specific filter selections (temporary for modal)
   selectedFilterTaskTypes: string[] = [];
   selectedFilterEntityNames: string[] = [];
   selectedFilterStatuses: string[] = [];
   selectedFilterDates: string[] = [];
-  selectedFilterContactPersons: string[] = []; // NEW: for Contact Person
+  selectedFilterContactPersons: string[] = [];
 
-  // Specific applied filters (affecting the table display)
   appliedFilterTaskTypes: string[] = [];
   appliedFilterEntityNames: string[] = [];
   appliedFilterStatuses: string[] = [];
   appliedFilterDates: string[] = [];
-  appliedFilterContactPersons: string[] = []; // NEW: for Contact Person
+  appliedFilterContactPersons: string[] = [];
 
   newTaskForm: FormGroup;
   editTaskForm: FormGroup;
 
   taskTypes: string[] = ['Call', 'Meeting', 'Video Call'];
 
+  sortColumn: string | null = null;
+  sortDirection: 'asc' | 'desc' = 'asc';
+
   constructor(private taskService: TaskService, private fb: FormBuilder) {
     this.newTaskForm = this.fb.group({
       entityName: ['', Validators.required],
-      date: [this.getCurrentDateString(), Validators.required],
-      time: [this.getCurrentTimeString(), Validators.required],
+      date: [this.getCurrentDateString()],
+      time: [this.getCurrentTimeString()],
       taskType: ['Call', Validators.required],
       phoneNumber: [''],
       contactPerson: [''],
       note: [''],
-      status: ['open']
+      status: ['open'] // Default status for new tasks
     });
 
     this.editTaskForm = this.fb.group({
       id: [{value: '', disabled: true}],
       entityName: ['', Validators.required],
-      date: ['', Validators.required],
-      time: ['', Validators.required],
+      date: [''],
+      time: [''],
       taskType: ['', Validators.required],
       phoneNumber: [''],
       contactPerson: [''],
@@ -96,6 +96,8 @@ export class AppComponent implements OnInit {
       (tasks) => {
         this.tasks = tasks;
         console.log('Tasks received from backend:', this.tasks);
+        this.applyFilters();
+        this.sortTasks(this.sortColumn || 'dateCreated');
       },
       (error) => {
         console.error('Error loading tasks:', error);
@@ -103,37 +105,47 @@ export class AppComponent implements OnInit {
     );
   }
 
-  changeFormStatus(status: 'open' | 'closed'): void {
-    const currentForm = this.editingTask ? this.editTaskForm : this.newTaskForm;
-    currentForm.get('status')?.setValue(status);
+  // --- REMOVED: toggleStatus method as it's no longer needed for a select dropdown ---
+  // toggleStatus(): void {
+  //   const currentForm = this.editingTask ? this.editTaskForm : this.newTaskForm;
+  //   const currentStatus = currentForm.get('status')?.value;
+  //   const newStatus = currentStatus === 'open' ? 'closed' : 'open';
+  //   currentForm.get('status')?.setValue(newStatus);
+  // }
+
+  openCreateTaskModal(): void {
+    this.showNewTaskModal = true;
+    this.newTaskForm.reset({
+      entityName: '',
+      date: this.getCurrentDateString(),
+      time: this.getCurrentTimeString(),
+      taskType: 'Call',
+      phoneNumber: '',
+      contactPerson: '',
+      note: '',
+      status: 'open'
+    });
+    this.editingTask = null;
   }
 
   createTask(): void {
-    if (!this.showNewTaskModal) {
-      this.showNewTaskModal = true;
-      this.newTaskForm.reset({
-        entityName: '',
-        date: this.getCurrentDateString(),
-        time: this.getCurrentTimeString(),
-        taskType: 'Call',
-        phoneNumber: '',
-        contactPerson: '',
-        note: '',
-        status: 'open'
-      });
-      this.editingTask = null;
-      return;
-    }
-
     if (this.newTaskForm.invalid) {
       console.error('New Task Form is invalid. Cannot create task.');
       this.newTaskForm.markAllAsTouched();
       return;
     }
 
-    const taskData = this.newTaskForm.value;
+    const payload = {
+      entityName: this.newTaskForm.value.entityName,
+      taskType: this.newTaskForm.value.taskType,
+      time: this.newTaskForm.value.time,
+      contactPerson: this.newTaskForm.value.contactPerson,
+      phoneNumber: this.newTaskForm.value.phoneNumber,
+      note: this.newTaskForm.value.note,
+      status: this.newTaskForm.value.status
+    };
 
-    this.taskService.createTask(taskData).subscribe(
+    this.taskService.createTask(payload).subscribe(
       (createdTask) => {
         console.log('Task created successfully:', createdTask);
         this.newTaskForm.reset();
@@ -161,7 +173,7 @@ export class AppComponent implements OnInit {
       const entityName = this.selectedTaskForOptions.entityName;
       const phoneNumber = this.selectedTaskForOptions.phoneNumber;
       console.log(`Simulating a call for ${entityName}. Phone: ${phoneNumber || 'N/A'}`);
-      alert(`Calling ${entityName} at ${phoneNumber || 'No number provided'}`);
+      console.log(`Calling ${entityName} at ${phoneNumber || 'No number provided'}`);
     }
     this.closeTaskOptions();
   }
@@ -201,7 +213,7 @@ export class AppComponent implements OnInit {
     }
 
     const updatedData = { ...this.editingTask, ...this.editTaskForm.value };
-    delete updatedData.date; // Backend uses date_created automatically
+    delete updatedData.date;
 
     const taskId = this.editingTask.id;
 
@@ -243,13 +255,54 @@ export class AppComponent implements OnInit {
     }
   }
 
-  // --- Filter Modal Methods - UPDATED FOR MULTIPLE COLUMNS ---
+  clearSort(): void {
+    this.sortColumn = null;
+    this.sortDirection = 'asc';
+    this.applyFilters();
+  }
+
+  sortTasks(column: string): void {
+    if (this.sortColumn === column) {
+      this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+    } else {
+      this.sortColumn = column;
+      this.sortDirection = 'asc';
+    }
+
+    this.tasksToDisplay.sort((a, b) => {
+      let valA: any;
+      let valB: any;
+
+      if (column === 'dateCreated') {
+        valA = new Date(a.dateCreated).getTime();
+        valB = new Date(b.dateCreated).getTime();
+      } else if (column === 'lastStatusChangeDate' && a.lastStatusChangeDate && b.lastStatusChangeDate) {
+        valA = new Date(a.lastStatusChangeDate).getTime();
+        valB = new Date(b.lastStatusChangeDate).getTime();
+      }
+      else {
+        valA = (a as any)[this.sortColumn!];
+        valB = (b as any)[this.sortColumn!];
+        if (typeof valA === 'string' && typeof valB === 'string') {
+          valA = valA.toLowerCase();
+          valB = valB.toLowerCase();
+        }
+      }
+
+      if (valA < valB) {
+        return this.sortDirection === 'asc' ? -1 : 1;
+      }
+      if (valA > valB) {
+        return this.sortDirection === 'asc' ? 1 : -1;
+      }
+      return 0;
+    });
+  }
 
   openFilterModal(column: string): void {
     this.currentFilterColumn = column;
-    this.filterSearchTerm = ''; // Reset search term when opening
+    this.filterSearchTerm = '';
 
-    // Initialize selected filters with currently applied filters for the specific column
     if (column === 'taskType') {
       this.selectedFilterTaskTypes = [...this.appliedFilterTaskTypes];
     } else if (column === 'entityName') {
@@ -258,7 +311,7 @@ export class AppComponent implements OnInit {
       this.selectedFilterStatuses = [...this.appliedFilterStatuses];
     } else if (column === 'date') {
       this.selectedFilterDates = [...this.appliedFilterDates];
-    } else if (column === 'contactPerson') { // NEW
+    } else if (column === 'contactPerson') {
       this.selectedFilterContactPersons = [...this.appliedFilterContactPersons];
     }
     this.showFilterModal = true;
@@ -270,7 +323,6 @@ export class AppComponent implements OnInit {
     this.filterSearchTerm = '';
   }
 
-  // Handle checkbox changes in the filter modal (now generic)
   onFilterCheckboxChange(value: string, event: Event, filterType: string): void {
     const inputElement = event.target as HTMLInputElement;
     let targetArray: string[] = [];
@@ -279,7 +331,7 @@ export class AppComponent implements OnInit {
     else if (filterType === 'entityName') targetArray = this.selectedFilterEntityNames;
     else if (filterType === 'status') targetArray = this.selectedFilterStatuses;
     else if (filterType === 'date') targetArray = this.selectedFilterDates;
-    else if (filterType === 'contactPerson') targetArray = this.selectedFilterContactPersons; // NEW
+    else if (filterType === 'contactPerson') targetArray = this.selectedFilterContactPersons;
 
     if (inputElement.checked) {
       if (!targetArray.includes(value)) {
@@ -292,15 +344,13 @@ export class AppComponent implements OnInit {
       }
     }
 
-    // Assign back to trigger Angular change detection if targetArray was reassigned locally
-    if (filterType === 'taskType') this.selectedFilterTaskTypes = targetArray;
-    else if (filterType === 'entityName') this.selectedFilterEntityNames = targetArray;
-    else if (filterType === 'status') this.selectedFilterStatuses = targetArray;
-    else if (filterType === 'date') this.selectedFilterDates = targetArray;
-    else if (filterType === 'contactPerson') this.selectedFilterContactPersons = targetArray; // NEW
+    if (filterType === 'taskType') this.selectedFilterTaskTypes = [...targetArray];
+    else if (filterType === 'entityName') this.selectedFilterEntityNames = [...targetArray];
+    else if (filterType === 'status') this.selectedFilterStatuses = [...targetArray];
+    else if (filterType === 'date') this.selectedFilterDates = [...targetArray];
+    else if (filterType === 'contactPerson') this.selectedFilterContactPersons = [...targetArray];
   }
 
-  // Apply button handler - UPDATED
   applyFilters(): void {
     if (this.currentFilterColumn === 'taskType') {
       this.appliedFilterTaskTypes = [...this.selectedFilterTaskTypes];
@@ -310,14 +360,12 @@ export class AppComponent implements OnInit {
       this.appliedFilterStatuses = [...this.selectedFilterStatuses];
     } else if (this.currentFilterColumn === 'date') {
       this.appliedFilterDates = [...this.selectedFilterDates];
-    } else if (this.currentFilterColumn === 'contactPerson') { // NEW
+    } else if (this.currentFilterColumn === 'contactPerson') {
       this.appliedFilterContactPersons = [...this.selectedFilterContactPersons];
     }
-    // tasksToDisplay getter will automatically re-evaluate based on applied filters
     this.closeFilterModal();
   }
 
-  // Clear button handler - UPDATED
   clearFilters(): void {
     if (this.currentFilterColumn === 'taskType') {
       this.selectedFilterTaskTypes = [];
@@ -331,21 +379,19 @@ export class AppComponent implements OnInit {
     } else if (this.currentFilterColumn === 'date') {
       this.selectedFilterDates = [];
       this.appliedFilterDates = [];
-    } else if (this.currentFilterColumn === 'contactPerson') { // NEW
+    } else if (this.currentFilterColumn === 'contactPerson') {
       this.selectedFilterContactPersons = [];
       this.appliedFilterContactPersons = [];
     }
     this.closeFilterModal();
+    this.applyFilters();
   }
 
-  // Getters for filter options based on the currently selected column
   get uniqueEntityNames(): string[] {
-    // Extract unique entity names from all tasks, sort, and remove duplicates
     return [...new Set(this.tasks.map(task => task.entityName))].sort((a, b) => a.localeCompare(b));
   }
 
   get uniqueDates(): string[] {
-    // Extract unique formatted dates (YYYY-MM-DD) from all tasks, sort them chronologically
     return [...new Set(this.tasks.map(task => formatDate(task.dateCreated, 'yyyy-MM-dd', 'en-US')))]
       .sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
   }
@@ -354,14 +400,11 @@ export class AppComponent implements OnInit {
     return ['open', 'closed'];
   }
 
-  // NEW: Getters for unique contact persons
   get uniqueContactPersons(): string[] {
-    // Filter out null/undefined/empty strings, then get unique, sort, and return
     return [...new Set(this.tasks.map(task => task.contactPerson).filter(Boolean) as string[])]
            .sort((a, b) => a.localeCompare(b));
   }
 
-  // Central getter to provide options to the filter modal based on currentFilterColumn
   get filterOptionsForModal(): string[] {
     let options: string[] = [];
     if (this.currentFilterColumn === 'taskType') {
@@ -373,7 +416,7 @@ export class AppComponent implements OnInit {
       options = this.allStatuses;
     } else if (this.currentFilterColumn === 'date') {
       options = this.uniqueDates;
-    } else if (this.currentFilterColumn === 'contactPerson') { // NEW
+    } else if (this.currentFilterColumn === 'contactPerson') {
       options = this.uniqueContactPersons;
     }
 
@@ -384,81 +427,86 @@ export class AppComponent implements OnInit {
     return options.filter(option => option.toLowerCase().includes(searchTermLower));
   }
 
-  // Helper method for ID generation
   generateFilterId(option: string): string {
     if (!this.currentFilterColumn) {
-      return ''; // Should not happen, but for safety
+      return '';
     }
-    // Replace non-alphanumeric characters with hyphens, then convert to lowercase
     const safeOption = option.replace(/[^a-zA-Z0-9]+/g, '-').toLowerCase();
     return `filter-${this.currentFilterColumn}-${safeOption}`;
   }
 
-  // Check if an item is selected in the current filter column's temporary selection
   isFilterItemSelected(value: string): boolean {
     if (this.currentFilterColumn === 'taskType') return this.selectedFilterTaskTypes.includes(value);
     if (this.currentFilterColumn === 'entityName') return this.selectedFilterEntityNames.includes(value);
     if (this.currentFilterColumn === 'status') return this.selectedFilterStatuses.includes(value);
     if (this.currentFilterColumn === 'date') return this.selectedFilterDates.includes(value);
-    if (this.currentFilterColumn === 'contactPerson') return this.selectedFilterContactPersons.includes(value); // NEW
+    if (this.currentFilterColumn === 'contactPerson') return this.selectedFilterContactPersons.includes(value);
     return false;
   }
 
-  // Getter to return tasks that should be displayed in the table based on ALL applied filters
   get tasksToDisplay(): Task[] {
-    let displayedTasks = [...this.tasks]; // Start with all tasks
+    let displayedTasks = [...this.tasks];
 
-    console.log('--- Filtering started ---');
-    console.log('Initial tasks:', this.tasks.length);
-
-    // Apply Task Type filter
     if (this.appliedFilterTaskTypes.length > 0) {
-      console.log('Applying Task Type filter:', this.appliedFilterTaskTypes);
       displayedTasks = displayedTasks.filter(task =>
         this.appliedFilterTaskTypes.includes(task.taskType)
       );
-      console.log('Tasks after Task Type filter:', displayedTasks.length);
     }
 
-    // Apply Entity Name filter
     if (this.appliedFilterEntityNames.length > 0) {
-      console.log('Applying Entity Name filter:', this.appliedFilterEntityNames);
       displayedTasks = displayedTasks.filter(task =>
         this.appliedFilterEntityNames.includes(task.entityName)
       );
-      console.log('Tasks after Entity Name filter:', displayedTasks.length);
     }
 
-    // Apply Status filter
     if (this.appliedFilterStatuses.length > 0) {
-      console.log('Applying Status filter:', this.appliedFilterStatuses);
       displayedTasks = displayedTasks.filter(task =>
         this.appliedFilterStatuses.map(s => s.toLowerCase()).includes(task.status.toLowerCase())
       );
-      console.log('Tasks after Status filter:', displayedTasks.length);
     }
 
-    // Apply Date filter
     if (this.appliedFilterDates.length > 0) {
-      console.log('Applying Date filter:', this.appliedFilterDates);
       displayedTasks = displayedTasks.filter(task =>
         this.appliedFilterDates.includes(formatDate(task.dateCreated, 'yyyy-MM-dd', 'en-US'))
       );
-      console.log('Tasks after Date filter:', displayedTasks.length);
     }
 
-    // NEW: Apply Contact Person filter
     if (this.appliedFilterContactPersons.length > 0) {
-      console.log('Applying Contact Person filter:', this.appliedFilterContactPersons);
       displayedTasks = displayedTasks.filter(task =>
-        // Ensure task.contactPerson exists before including it, and handle case if necessary
         task.contactPerson && this.appliedFilterContactPersons.includes(task.contactPerson)
       );
-      console.log('Tasks after Contact Person filter:', displayedTasks.length);
     }
 
-    console.log('--- Filtering finished ---');
-    console.log('Final displayed tasks:', displayedTasks.length);
+    if (this.sortColumn) {
+      displayedTasks.sort((a, b) => {
+        let valA: any;
+        let valB: any;
+
+        if (this.sortColumn === 'dateCreated') {
+          valA = new Date(a.dateCreated).getTime();
+          valB = new Date(b.dateCreated).getTime();
+        } else if (this.sortColumn === 'lastStatusChangeDate' && a.lastStatusChangeDate && b.lastStatusChangeDate) {
+          valA = new Date(a.lastStatusChangeDate).getTime();
+          valB = new Date(b.lastStatusChangeDate).getTime();
+        } else {
+          valA = (a as any)[this.sortColumn!];
+          valB = (b as any)[this.sortColumn!];
+          if (typeof valA === 'string' && typeof valB === 'string') {
+            valA = valA.toLowerCase();
+            valB = valB.toLowerCase();
+          }
+        }
+
+        if (valA < valB) {
+          return this.sortDirection === 'asc' ? -1 : 1;
+        }
+        if (valA > valB) {
+          return this.sortDirection === 'asc' ? 1 : -1;
+        }
+        return 0;
+      });
+    }
+
     return displayedTasks;
   }
 }

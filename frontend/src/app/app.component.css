@@ -297,43 +297,68 @@ body {
   min-height: 80px; /* Taller textarea for more space */
 }
 
-/* --- Status Toggle Container (for New/Edit Modal) --- */
-.status-toggle-container {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 25px;
-  background-color: #f0f0f0; /* Slight background for the container */
-  border-radius: 5px;
-  padding: 3px;
-  gap: 5px;
-}
-
-.status-toggle-button {
-  flex: 1;
-  background-color: transparent; /* Makes the unselected button appear white */
-  border: none;
-  padding: 8px 15px;
-  border-radius: 4px;
-  cursor: pointer;
+.form-group select#status {
+  width: 100%;
+  padding: 10px 15px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 1em;
   font-weight: bold;
-  font-size: 14px;
-  color: #666;
-  transition: all 0.2s ease-in-out;
+  cursor: pointer;
+  background-color: white; /* Make default background white */
+  color: #333; /* Default text color */
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23000000%22%20d%3D%22M287%2C197.3L159.9%2C69.3c-4.8-4.8-12.5-4.8-17.3%2C0L5.4%2C197.3c-4.8%2C4.8-4.8%2C12.5%2C0%2C17.3s12.5%2C4.8%2C17.3%2C0l130.5-130.7l130.5%2C130.7c4.8%2C4.8%2C12.5%2C4.8%2C17.3%2C0S291.8%2C202.1%2C287%2C197.3z%22%2F%3E%3C%2Fsvg%3E');
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 12px;
 }
 
-.status-toggle-button.active {
-  background-color: #007bff; /* Primary blue for active state */
+.form-group select#status:focus {
+  border-color: #007bff;
+  outline: none;
+  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+/* Specific colors for Open and Closed status dropdown when selected */
+.form-group select#status.status-open-select {
+  background-color: #28a745; /* Green for Open */
+  color: white; /* White text for contrast */
+  border-color: #28a745;
+}
+
+.form-group select#status.status-closed-select {
+  background-color: #dc3545; /* Red for Closed */
+  color: white; /* White text for contrast */
+  border-color: #dc3545;
+}
+
+/* Ensure the label for the status button is styled correctly */
+.form-group label[for="status"] { /* Targeting specifically the label for status */
+  display: block;
+  margin-bottom: 5px;
+  font-weight: bold;
+  color: #555;
+}
+
+/* Existing status badge styling (for the table, keep these) */
+.status-badge {
+  padding: 5px 10px;
+  border-radius: 15px;
+  font-size: 0.8em;
+  font-weight: bold;
   color: white;
-  box-shadow: 0 2px 5px rgba(0, 123, 255, 0.3);
+  text-transform: uppercase;
 }
 
-.status-toggle-button.active:hover {
-  background-color: #0056b3; /* Slightly darker blue on hover for the active button */
+.status-open {
+  background-color: #28a745; /* Green */
 }
 
-.status-toggle-button:hover:not(.active) {
-  background-color: #e2e6ea; /* Subtle hover for inactive buttons */
-  color: #333;
+.status-closed {
+  background-color: #dc3545; /* Red */
 }
 
 /* --- Modal Actions (buttons at the bottom of New/Edit and Filter Modals) --- */

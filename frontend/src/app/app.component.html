@@ -1,9 +1,16 @@
 <div class="sales-log-container">
 
   <div class="header-section">
-    <h2>SALES LOG</h2> <div class="header-actions"> <button class="new-task-button" (click)="createTask()">
-        <i class="fas fa-plus"></i> New Task </button>
+    <h2>SALES LOG</h2>
+    <div class="header-actions">
+      <button class="new-task-button" (click)="openCreateTaskModal()">
+        <i class="fas fa-plus"></i> New Task
+      </button>
       <input type="text" placeholder="Search" class="search-input">
+      <!-- Reset Sort Button -->
+      <button class="reset-sort-button" (click)="clearSort()" *ngIf="sortColumn">
+        <i class="fas fa-undo"></i> Reset Sort
+      </button>
     </div>
   </div>
 
@@ -15,16 +22,50 @@
     <table class="task-table">
       <thead>
         <tr>
-          <th>Date <i class="fas fa-filter filter-icon" (click)="openFilterModal('date')"></i></th>
-          <th>Entity Name <i class="fas fa-filter filter-icon" (click)="openFilterModal('entityName')"></i></th>
-          <th>Task Type <i class="fas fa-filter filter-icon" (click)="openFilterModal('taskType')"></i></th>
-          <th>Time <i class="fas fa-clock icon-placeholder"></i></th> <th>Contact Person <i class="fas fa-filter filter-icon" (click)="openFilterModal('contactPerson')"></i></th>
-          <th>Notes</th> <th>Status <i class="fas fa-filter filter-icon" (click)="openFilterModal('status')"></i></th>
-          <th>Options</th> </tr>
+          <th (click)="sortTasks('dateCreated')">
+            Date
+            <i class="fas fa-filter filter-icon" (click)="$event.stopPropagation(); openFilterModal('date')"></i>
+            <i class="fas fa-sort" *ngIf="sortColumn !== 'dateCreated'"></i>
+            <i class="fas fa-sort-up" *ngIf="sortColumn === 'dateCreated' && sortDirection === 'asc'"></i>
+            <i class="fas fa-sort-down" *ngIf="sortColumn === 'dateCreated' && sortDirection === 'desc'"></i>
+          </th>
+          <th (click)="sortTasks('entityName')">
+            Entity Name
+            <i class="fas fa-filter filter-icon" (click)="$event.stopPropagation(); openFilterModal('entityName')"></i>
+            <i class="fas fa-sort" *ngIf="sortColumn !== 'entityName'"></i>
+            <i class="fas fa-sort-up" *ngIf="sortColumn === 'entityName' && sortDirection === 'asc'"></i>
+            <i class="fas fa-sort-down" *ngIf="sortColumn === 'entityName' && sortDirection === 'desc'"></i>
+          </th>
+          <th (click)="sortTasks('taskType')">
+            Task Type
+            <i class="fas fa-filter filter-icon" (click)="$event.stopPropagation(); openFilterModal('taskType')"></i>
+            <i class="fas fa-sort" *ngIf="sortColumn !== 'taskType'"></i>
+            <i class="fas fa-sort-up" *ngIf="sortColumn === 'taskType' && sortDirection === 'asc'"></i>
+            <i class="fas fa-sort-down" *ngIf="sortColumn === 'taskType' && sortDirection === 'desc'"></i>
+          </th>
+          <th>Time <i class="fas fa-clock icon-placeholder"></i></th>
+          <th (click)="sortTasks('contactPerson')">
+            Contact Person
+            <i class="fas fa-filter filter-icon" (click)="$event.stopPropagation(); openFilterModal('contactPerson')"></i>
+            <i class="fas fa-sort" *ngIf="sortColumn !== 'contactPerson'"></i>
+            <i class="fas fa-sort-up" *ngIf="sortColumn === 'contactPerson' && sortDirection === 'asc'"></i>
+            <i class="fas fa-sort-down" *ngIf="sortColumn === 'contactPerson' && sortDirection === 'desc'"></i>
+          </th>
+          <th>Notes</th>
+          <th (click)="sortTasks('status')">
+            Status
+            <i class="fas fa-filter filter-icon" (click)="$event.stopPropagation(); openFilterModal('status')"></i>
+            <i class="fas fa-sort" *ngIf="sortColumn !== 'status'"></i>
+            <i class="fas fa-sort-up" *ngIf="sortColumn === 'status' && sortDirection === 'asc'"></i>
+            <i class="fas fa-sort-down" *ngIf="sortColumn === 'status' && sortDirection === 'desc'"></i>
+          </th>
+          <th>Options</th>
+        </tr>
       </thead>
       <tbody>
         <tr *ngFor="let task of tasksToDisplay">
-          <td>{{ task.dateCreated | date:'dd/MM/yyyy' }}</td> <td><a href="#" class="entity-name-link">{{ task.entityName }}</a></td>
+          <td>{{ task.dateCreated | date:'dd/MM/yyyy' }}</td>
+          <td><a href="#" class="entity-name-link">{{ task.entityName }}</a></td>
           <td>
             <ng-container [ngSwitch]="task.taskType">
               <i *ngSwitchCase="'Call'" class="fas fa-phone icon-placeholder"></i>
@@ -39,7 +80,8 @@
             <ng-container *ngIf="task.contactPerson; else addContactButton">
               {{ task.contactPerson }}
             </ng-container>
-            <ng-template #addContactButton> <button class="add-note-button">
+            <ng-template #addContactButton>
+              <button class="add-note-button">
                 <i class="fas fa-plus"></i> Add Contact
               </button>
             </ng-template>
@@ -58,7 +100,8 @@
             <div class="status-tooltip-container">
               <span class="status-badge status-{{ task.status.toLowerCase() }}">{{ task.status }}</span>
               <div class="status-tooltip-text">
-                Status: {{ task.status | titlecase }}<br> <ng-container *ngIf="task.lastStatusChangeDate">
+                Status: {{ task.status | titlecase }}<br>
+                <ng-container *ngIf="task.lastStatusChangeDate">
                   Changed on: {{ task.lastStatusChangeDate | date:'dd/MM/yyyy h:mm a' }}
                 </ng-container>
                 <ng-container *ngIf="!task.lastStatusChangeDate">
@@ -86,24 +129,22 @@
   <div class="modal-content">
     <h3>{{ editingTask ? 'EDIT TASK' : 'NEW TASK' }}</h3>
 
-    <div class="status-toggle-container">
-      <button
-        class="status-toggle-button"
-        [class.active]="(editingTask ? editTaskForm : newTaskForm).get('status')?.value === 'open'"
-        (click)="changeFormStatus('open')"
-      >
-        Open
-      </button>
-      <button
-        class="status-toggle-button"
-        [class.active]="(editingTask ? editTaskForm : newTaskForm).get('status')?.value === 'closed'"
-        (click)="changeFormStatus('closed')"
-      >
-        Closed
-      </button>
-    </div>
-
+    <!-- MOVE the formGroup directive to the form tag -->
     <form [formGroup]="editingTask ? editTaskForm : newTaskForm">
+      <!-- Status Dropdown Implementation - NOW INSIDE THE FORM TAG -->
+      <div class="form-group">
+        <label for="status">Status</label>
+        <select id="status" formControlName="status"
+                [ngClass]="{
+                  'status-open-select': (editingTask ? editTaskForm : newTaskForm).get('status')?.value === 'open',
+                  'status-closed-select': (editingTask ? editTaskForm : newTaskForm).get('status')?.value === 'closed'
+                }">
+          <option value="open">Open</option>
+          <option value="closed">Closed</option>
+        </select>
+      </div>
+      <!-- END Status Dropdown Implementation -->
+
       <div class="form-group">
         <label for="entityName">Entity name</label>
         <input id="entityName" type="text" formControlName="entityName" placeholder="Enter entity name">
