@@ -1,0 +1,133 @@
+[debug] [2025-06-02T19:24:00.201Z] ----------------------------------------------------------------------
+[debug] [2025-06-02T19:24:00.208Z] Command:       /Users/pratikguragain/.nvm/versions/node/v20.17.0/bin/node /Users/pratikguragain/.nvm/versions/node/v20.17.0/bin/firebase init hosting
+[debug] [2025-06-02T19:24:00.208Z] CLI Version:   14.5.1
+[debug] [2025-06-02T19:24:00.208Z] Platform:      darwin
+[debug] [2025-06-02T19:24:00.208Z] Node Version:  v20.17.0
+[debug] [2025-06-02T19:24:00.209Z] Time:          Tue Jun 03 2025 00:54:00 GMT+0530 (India Standard Time)
+[debug] [2025-06-02T19:24:00.209Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2025-06-02T19:24:00.212Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2025-06-02T19:24:00.212Z] > authorizing via signed-in user (guragainpratik0@gmail.com)
+[info] 
+     ######## #### ########  ######## ########     ###     ######  ########
+     ##        ##  ##     ## ##       ##     ##  ##   ##  ##       ##
+     ######    ##  ########  ######   ########  #########  ######  ######
+     ##        ##  ##    ##  ##       ##     ## ##     ##       ## ##
+     ##       #### ##     ## ######## ########  ##     ##  ######  ########
+
+You're about to initialize a Firebase project in this directory:
+
+  /Users/pratikguragain/Desktop/finstack-task-app/frontend
+
+[info] 
+=== Project Setup
+[info] 
+[info] First, let's associate this project directory with a Firebase project.
+[info] You can create multiple project aliases by running firebase use --add, 
+[info] but for now we'll just set up a default project.
+[info] 
+[info] i  If you want to create a project in a Google Cloud organization or folder, please use "firebase projects:create" instead, and return to this command when you've created the project. 
+[debug] [2025-06-02T19:25:23.553Z] Checked if tokens are valid: true, expires at: 1748895799420
+[debug] [2025-06-02T19:25:23.554Z] Checked if tokens are valid: true, expires at: 1748895799420
+[debug] [2025-06-02T19:25:23.556Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects [none]
+[debug] [2025-06-02T19:25:23.556Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects {"projectId":"123456","name":"finstackapp"}
+[debug] [2025-06-02T19:25:24.967Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects 400
+[debug] [2025-06-02T19:25:24.968Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects {"error":{"code":400,"message":"field [project_id] has issue [project_id contains invalid characters]","status":"INVALID_ARGUMENT","details":[{"@type":"type.googleapis.com/google.rpc.BadRequest","fieldViolations":[{"field":"project_id","description":"project_id contains invalid characters"}]},{"@type":"type.googleapis.com/google.rpc.Help","links":[{"url":"https://cloud.google.com/resource-manager/reference/rest/v1/projects"}]}]}}
+[debug] [2025-06-02T19:25:24.971Z] FirebaseError: Request to https://cloudresourcemanager.googleapis.com/v1/projects had HTTP Error: 400, field [project_id] has issue [project_id contains invalid characters]
+    at responseToError (/Users/pratikguragain/.nvm/versions/node/v20.17.0/lib/node_modules/firebase-tools/lib/responseToError.js:52:12)
+    at RetryOperation._fn (/Users/pratikguragain/.nvm/versions/node/v20.17.0/lib/node_modules/firebase-tools/lib/apiv2.js:312:77)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+[error] 
+[error] Error: Failed to create project. See firebase-debug.log for more info.
+[debug] [2025-06-02T19:26:00.052Z] ----------------------------------------------------------------------
+[debug] [2025-06-02T19:26:00.057Z] Command:       /Users/pratikguragain/.nvm/versions/node/v20.17.0/bin/node /Users/pratikguragain/.nvm/versions/node/v20.17.0/bin/firebase init hosting
+[debug] [2025-06-02T19:26:00.058Z] CLI Version:   14.5.1
+[debug] [2025-06-02T19:26:00.058Z] Platform:      darwin
+[debug] [2025-06-02T19:26:00.058Z] Node Version:  v20.17.0
+[debug] [2025-06-02T19:26:00.058Z] Time:          Tue Jun 03 2025 00:56:00 GMT+0530 (India Standard Time)
+[debug] [2025-06-02T19:26:00.058Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2025-06-02T19:26:00.061Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2025-06-02T19:26:00.061Z] > authorizing via signed-in user (guragainpratik0@gmail.com)
+[info] 
+     ######## #### ########  ######## ########     ###     ######  ########
+     ##        ##  ##     ## ##       ##     ##  ##   ##  ##       ##
+     ######    ##  ########  ######   ########  #########  ######  ######
+     ##        ##  ##    ##  ##       ##     ## ##     ##       ## ##
+     ##       #### ##     ## ######## ########  ##     ##  ######  ########
+
+You're about to initialize a Firebase project in this directory:
+
+  /Users/pratikguragain/Desktop/finstack-task-app/frontend
+
+[info] 
+=== Project Setup
+[info] 
+[info] First, let's associate this project directory with a Firebase project.
+[info] You can create multiple project aliases by running firebase use --add, 
+[info] but for now we'll just set up a default project.
+[info] 
+[info] i  If you want to create a project in a Google Cloud organization or folder, please use "firebase projects:create" instead, and return to this command when you've created the project. 
+[debug] [2025-06-02T19:26:22.595Z] Checked if tokens are valid: true, expires at: 1748895799420
+[debug] [2025-06-02T19:26:22.596Z] Checked if tokens are valid: true, expires at: 1748895799420
+[debug] [2025-06-02T19:26:22.598Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects [none]
+[debug] [2025-06-02T19:26:22.598Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects {"projectId":"20050118","name":"finstack-sales-log-pga"}
+[debug] [2025-06-02T19:26:23.971Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects 400
+[debug] [2025-06-02T19:26:23.971Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects {"error":{"code":400,"message":"field [project_id] has issue [project_id contains invalid characters]","status":"INVALID_ARGUMENT","details":[{"@type":"type.googleapis.com/google.rpc.BadRequest","fieldViolations":[{"field":"project_id","description":"project_id contains invalid characters"}]},{"@type":"type.googleapis.com/google.rpc.Help","links":[{"url":"https://cloud.google.com/resource-manager/reference/rest/v1/projects"}]}]}}
+[debug] [2025-06-02T19:26:23.974Z] FirebaseError: Request to https://cloudresourcemanager.googleapis.com/v1/projects had HTTP Error: 400, field [project_id] has issue [project_id contains invalid characters]
+    at responseToError (/Users/pratikguragain/.nvm/versions/node/v20.17.0/lib/node_modules/firebase-tools/lib/responseToError.js:52:12)
+    at RetryOperation._fn (/Users/pratikguragain/.nvm/versions/node/v20.17.0/lib/node_modules/firebase-tools/lib/apiv2.js:312:77)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+[error] 
+[error] Error: Failed to create project. See firebase-debug.log for more info.
+[debug] [2025-06-02T19:26:29.503Z] ----------------------------------------------------------------------
+[debug] [2025-06-02T19:26:29.505Z] Command:       /Users/pratikguragain/.nvm/versions/node/v20.17.0/bin/node /Users/pratikguragain/.nvm/versions/node/v20.17.0/bin/firebase init hosting
+[debug] [2025-06-02T19:26:29.505Z] CLI Version:   14.5.1
+[debug] [2025-06-02T19:26:29.505Z] Platform:      darwin
+[debug] [2025-06-02T19:26:29.505Z] Node Version:  v20.17.0
+[debug] [2025-06-02T19:26:29.505Z] Time:          Tue Jun 03 2025 00:56:29 GMT+0530 (India Standard Time)
+[debug] [2025-06-02T19:26:29.506Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2025-06-02T19:26:29.509Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2025-06-02T19:26:29.509Z] > authorizing via signed-in user (guragainpratik0@gmail.com)
+[info] 
+     ######## #### ########  ######## ########     ###     ######  ########
+     ##        ##  ##     ## ##       ##     ##  ##   ##  ##       ##
+     ######    ##  ########  ######   ########  #########  ######  ######
+     ##        ##  ##    ##  ##       ##     ## ##     ##       ## ##
+     ##       #### ##     ## ######## ########  ##     ##  ######  ########
+
+You're about to initialize a Firebase project in this directory:
+
+  /Users/pratikguragain/Desktop/finstack-task-app/frontend
+
+[info] 
+=== Project Setup
+[info] 
+[info] First, let's associate this project directory with a Firebase project.
+[info] You can create multiple project aliases by running firebase use --add, 
+[info] but for now we'll just set up a default project.
+[info] 
+[info] i  If you want to create a project in a Google Cloud organization or folder, please use "firebase projects:create" instead, and return to this command when you've created the project. 
+[debug] [2025-06-02T19:26:54.571Z] Checked if tokens are valid: true, expires at: 1748895799420
+[debug] [2025-06-02T19:26:54.573Z] Checked if tokens are valid: true, expires at: 1748895799420
+[debug] [2025-06-02T19:26:54.575Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects [none]
+[debug] [2025-06-02T19:26:54.575Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects {"projectId":"pratik-finstack-app-2025","name":"finstack-sales-log-pga"}
+[debug] [2025-06-02T19:26:56.066Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects 200
+[debug] [2025-06-02T19:26:56.066Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects {"name":"operations/create_project.global.6249665437053079774"}
+[debug] [2025-06-02T19:26:56.067Z] Checked if tokens are valid: true, expires at: 1748895799420
+[debug] [2025-06-02T19:26:56.068Z] Checked if tokens are valid: true, expires at: 1748895799420
+[debug] [2025-06-02T19:26:56.068Z] >>> [apiv2][query] GET https://cloudresourcemanager.googleapis.com/v1/operations/create_project.global.6249665437053079774 [none]
+[debug] [2025-06-02T19:26:57.292Z] <<< [apiv2][status] GET https://cloudresourcemanager.googleapis.com/v1/operations/create_project.global.6249665437053079774 200
+[debug] [2025-06-02T19:26:57.292Z] <<< [apiv2][body] GET https://cloudresourcemanager.googleapis.com/v1/operations/create_project.global.6249665437053079774 {"name":"operations/create_project.global.6249665437053079774","metadata":{"@type":"type.googleapis.com/google.cloudresourcemanager.v1.ProjectCreationStatus","ready":true},"done":true,"error":{"code":9,"message":"Callers must accept Terms of Service","details":[{"@type":"type.googleapis.com/google.rpc.PreconditionFailure","violations":[{"type":"TOS","subject":"cloud","description":"Callers must accept Terms of Service"}]}]}}
+[debug] [2025-06-02T19:26:57.295Z] FirebaseError: Callers must accept Terms of Service
+    at OperationPoller.poll (/Users/pratikguragain/.nvm/versions/node/v20.17.0/lib/node_modules/firebase-tools/lib/operation-poller.js:24:19)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async createCloudProject (/Users/pratikguragain/.nvm/versions/node/v20.17.0/lib/node_modules/firebase-tools/lib/management/projects.js:201:29)
+    at async createFirebaseProjectAndLog (/Users/pratikguragain/.nvm/versions/node/v20.17.0/lib/node_modules/firebase-tools/lib/management/projects.js:69:9)
+    at async promptAndCreateNewProject (/Users/pratikguragain/.nvm/versions/node/v20.17.0/lib/node_modules/firebase-tools/lib/init/features/project.js:31:12)
+    at async Object.doSetup (/Users/pratikguragain/.nvm/versions/node/v20.17.0/lib/node_modules/firebase-tools/lib/init/features/project.js:79:27)
+    at async init (/Users/pratikguragain/.nvm/versions/node/v20.17.0/lib/node_modules/firebase-tools/lib/init/index.js:57:13)
+    at async Command.initAction [as actionFn] (/Users/pratikguragain/.nvm/versions/node/v20.17.0/lib/node_modules/firebase-tools/lib/commands/init.js:187:5)
+[error] 
+[error] Error: Failed to create project. See firebase-debug.log for more info.
