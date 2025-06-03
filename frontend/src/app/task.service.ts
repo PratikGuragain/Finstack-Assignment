@@ -8,7 +8,7 @@ import { Task } from './task.model';
   providedIn: 'root'
 })
 export class TaskService {
-  private apiUrl = 'http://127.0.0.1:5000'; // Your Flask API URL
+  private apiUrl = 'https://finstack-assignment.onrender.com/api'; // Your Flask API URL
 
   constructor(private http: HttpClient) { }
 

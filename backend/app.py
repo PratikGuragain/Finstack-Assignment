@@ -1,23 +1,27 @@
 # finstack-task-app/backend/app.py
-from flask import Flask, request, jsonify, send_from_directory
+from flask import Flask, request, jsonify # Removed send_from_directory
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 from datetime import datetime
 from uuid import uuid4
-import os # Import the os module for path manipulation
+import os
 
-STATIC_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static')
+# 1. REMOVE STATIC_FOLDER AND static_folder ARGUMENT FROM Flask() constructor
+#    Because Netlify handles the frontend, Flask handles only the API.
+# app = Flask(__name__, static_folder=STATIC_FOLDER, static_url_path='') # REMOVE THIS LINE
+app = Flask(__name__) # <<< USE THIS LINE INSTEAD
 
-app = Flask(__name__, static_folder=STATIC_FOLDER, static_url_path='')
-
-CORS(app)
+# 2. Configure CORS dynamically for production/local.
+#    This makes sure Flask only allows requests from your Netlify frontend URL.
+CORS_ORIGIN = os.environ.get('CORS_ORIGIN', 'http://localhost:4200')
+CORS(app, resources={r"/api/*": {"origins": CORS_ORIGIN}}) # Specific CORS for /api routes
 
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///site.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
 
-# --- Task Model ---
+# --- Task Model (NO CHANGES NEEDED HERE - it's good) ---
 class Task(db.Model):
     id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid4()))
     date_created = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
@@ -48,7 +52,7 @@ class Task(db.Model):
 with app.app_context():
     db.create_all()
 
-# --- Flask API Routes (Now prefixed with /api) ---
+# --- Flask API Routes (NO CHANGES NEEDED HERE - these are correct) ---
 
 @app.route('/api/tasks', methods=['GET'])
 def get_tasks():
@@ -113,17 +117,18 @@ def delete_task(task_id):
     db.session.commit()
     return jsonify({"message": "Task deleted successfully"}), 200
 
-@app.route('/')
-def serve_index():
-    return send_from_directory(STATIC_FOLDER, 'index.html')
+# 3. REMOVE ALL STATIC FILE SERVING ROUTES. Heroku is ONLY for your API.
+# @app.route('/')
+# def serve_index():
+#     return send_from_directory(STATIC_FOLDER, 'index.html')
 
-@app.route('/<path:path>')
-def serve_angular_static_assets(path):
-    requested_file_path = os.path.join(STATIC_FOLDER, path)
-    if os.path.exists(requested_file_path):
-        return send_from_directory(STATIC_FOLDER, path)
-    else:
-        return send_from_directory(STATIC_FOLDER, 'index.html')
+# @app.route('/<path:path>')
+# def serve_angular_static_assets(path):
+#     requested_file_path = os.path.join(STATIC_FOLDER, path)
+#     if os.path.exists(requested_file_path):
+#         return send_from_directory(STATIC_FOLDER, path)
+#     else:
+#         return send_from_directory(STATIC_FOLDER, 'index.html')
 
 # --- Run the Flask App (for local development only) ---
 if __name__ == '__main__':
